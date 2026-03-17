@@ -1,0 +1,99 @@
+/* ── Signup-specific styles (extends login.css) ── */
+
+/* Wider form box for two-column layout */
+.signup-page .form-box,
+.form-box.signup-box {
+  max-width: 520px;
+}
+
+/* Two-column input row */
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Step guide on the left panel */
+.signup-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 40px;
+}
+
+.signup-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.step-icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  background: rgba(92, 184, 92, 0.12);
+  border: 1px solid rgba(92, 184, 92, 0.3);
+  color: #5cb85c;
+  font-weight: 800;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.signup-step strong {
+  display: block;
+  color: #e0e0e0;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.signup-step p {
+  color: #777;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* Success message */
+.success-msg {
+  background: rgba(92, 184, 92, 0.1);
+  border: 1px solid rgba(92, 184, 92, 0.3);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #5cb85c;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Sign in link at the bottom */
+.signup-login-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: #777;
+}
+
+.signup-login-link a {
+  color: #5cb85c;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.signup-login-link a:hover {
+  color: #6dd66d;
+  text-decoration: underline;
+}
+
+/* Responsive: stack to single column on small screens */
+@media (max-width: 600px) {
+  .input-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
