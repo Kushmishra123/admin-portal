@@ -21,7 +21,7 @@ app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
-const uri = process.env.MONGO_URI;
+const uri = process.env.MONGO_URI
 mongoose.connect(uri)
   .then(() => {
     console.log("✅ Connected to MongoDB – QB_Database");
