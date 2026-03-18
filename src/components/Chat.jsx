@@ -89,6 +89,34 @@ const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wis
     }
   };
 
+  const handleDeleteChat = async () => {
+    if (!selectedUser || !user) return;
+    const confirmDelete = window.confirm('Are you sure you want to delete this chat history?');
+    if (!confirmDelete) return;
+
+    try {
+      const currentUserId = user.employeeId || user.id;
+      const res = await fetch(`${API_URL}/messages/${currentUserId}/${selectedUser.id}?requesterId=${currentUserId}&requesterRole=${user.role}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (res.ok) {
+        setMessages((prev) => prev.filter(
+          (msg) => 
+            !(msg.senderId === currentUserId && msg.receiverId === selectedUser.id) &&
+            !(msg.senderId === selectedUser.id && msg.receiverId === currentUserId)
+        ));
+        alert('Chat history deleted successfully');
+      } else {
+        alert('Failed to delete chat history');
+      }
+    } catch (error) {
+      console.error('Failed to delete chat:', error);
+      alert('An error occurred while deleting the chat history');
+    }
+  };
+
+
   if (!isOpen) return null;
 
   const currentUserId = user ? (user.employeeId || user.id) : null;
@@ -160,6 +188,20 @@ const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wis
                     {onlineUsers.includes(selectedUser.id) ? 'Online' : 'Offline'}
                   </div>
                 </div>
+                {/* Delete Chat Button */}
+                <button
+                  className="chat-delete-btn"
+                  onClick={handleDeleteChat}
+                  title="Delete Chat History"
+                  style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#ff4d4d', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                </button>
               </div>
 
               {/* Messages */}

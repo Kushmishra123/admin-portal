@@ -835,5 +835,37 @@ app.get('/api/messages/:user1/:user2', async (req, res) => {
   }
 });
 
+app.delete('/api/messages/:user1/:user2', async (req, res) => {
+  try {
+    const { user1, user2 } = req.params;
+    const { requesterId, requesterRole } = req.query;
+
+    console.log(`\n💬 [CHAT] Deleting messages between ${user1} and ${user2} (Requested by: ${requesterId}, Role: ${requesterRole})`);
+
+    // Basic Authorization Check
+    // A user can delete their own chat, but admins/superadmins can delete any.
+    if (!requesterId) {
+      return res.status(401).json({ error: 'Unauthorized: No requester ID provided.' });
+    }
+    
+    if (requesterId !== user1 && requesterId !== user2 && requesterRole !== 'superadmin' && requesterRole !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden: You do not have permission to delete this chat history.' });
+    }
+
+    await Message.deleteMany({
+      $or: [
+        { senderId: user1, receiverId: user2 },
+        { senderId: user2, receiverId: user1 }
+      ]
+    });
+
+    console.log(`✅ [CHAT] Messages deleted successfully between ${user1} and ${user2}.`);
+    res.status(200).json({ message: 'Chat history deleted successfully' });
+  } catch (error) {
+    console.error('❌ [CHAT] Delete messages error:', error);
+    res.status(500).json({ error: 'Failed to delete messages' });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
