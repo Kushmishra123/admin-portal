@@ -18,11 +18,13 @@ const Sidebar = () => {
     { to: '/dashboard',  icon: '📊', label: 'Dashboard'          },
     { to: '/manage-leaves', icon: '📅', label: 'Manage Leaves'  },
     { to: '/settings',   icon: '⚙️', label: 'Settings'           },
+    { to: '/about',      icon: '🏢', label: 'About Company'      },
   ];
 
   const employeeLinks = [
     { to: '/dashboard',  icon: '📊', label: 'Dashboard'  },
     { to: '/my-leaves',  icon: '📅', label: 'My Leaves'  },
+    { to: '/about',      icon: '🏢', label: 'About Company'      },
     { to: '/settings',   icon: '⚙️', label: 'Settings'   },
   ];
 

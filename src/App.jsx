@@ -12,6 +12,7 @@ import MyLeaves from './pages/MyLeaves';
 import Settings from './pages/Settings';
 import ManageLeaves from './pages/ManageLeaves';
 import Signup from './pages/Signup';
+import AboutCompany from './pages/AboutCompany';
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -66,6 +67,7 @@ function App() {
             {/* Shared Routes */}
             <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/" />} />
             <Route path="/settings"  element={user ? <Settings />  : <Navigate to="/" />} />
+            <Route path="/about"     element={user ? <AboutCompany /> : <Navigate to="/" />} />
 
             {/* Superadmin-only Routes */}
             <Route path="/employees"    element={user?.role === 'superadmin' ? <Employees />   : <Navigate to="/" />} />

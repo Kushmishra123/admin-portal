@@ -10,15 +10,30 @@ const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
+const allowedOrigins = [
+  'https://admin-portal-navy-two.vercel.app', 
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // If no origin (e.g. server-to-server) or origin is in our allowed list, allow it
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
+};
+
 const io = new Server(server, {
-  cors: {
-    origin: "https://admin-portal-navy-two.vercel.app",
-    methods: ["GET", "POST"],
-    credentials: true
-  }
+  cors: corsOptions
 });
 
-app.use(cors({ origin: 'https://admin-portal-navy-two.vercel.app', credentials: true }));
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Connect to MongoDB
