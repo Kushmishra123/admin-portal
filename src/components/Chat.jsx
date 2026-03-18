@@ -32,7 +32,7 @@ const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wis
     if (isOpen) {
       const fetchUsers = async () => {
         try {
-          const res = await fetch(`${API_URL}/users`);
+          const res = await fetch(`${API_URL}/users`, { credentials: 'include' });
           if (res.ok) {
             const data = await res.json();
             setChatUsers(data);
@@ -51,7 +51,7 @@ const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wis
       if (selectedUser && user && isOpen) {
         try {
           const currentUserId = user.employeeId || user.id;
-          const res = await fetch(`${API_URL}/messages/${currentUserId}/${selectedUser.id}`);
+          const res = await fetch(`${API_URL}/messages/${currentUserId}/${selectedUser.id}`, { credentials: 'include' });
           if (res.ok) {
             const data = await res.json();
             setMessages(data);

@@ -12,12 +12,13 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
+    origin: "https://admin-portal-navy-two.vercel.app",
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
-app.use(cors());
+app.use(cors({ origin: 'https://admin-portal-navy-two.vercel.app', credentials: true }));
 app.use(express.json());
 
 // Connect to MongoDB

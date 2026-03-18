@@ -13,7 +13,7 @@ export const EmployeeProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/employees`);
+      const res = await fetch(`${API_URL}/employees`, { credentials: 'include' });
       if (!res.ok) throw new Error(`Server responded ${res.status}`);
       const data = await res.json();
       setEmployees(data.employees || []);
@@ -40,6 +40,7 @@ export const EmployeeProvider = ({ children }) => {
       const res = await fetch(`${API_URL}/employees/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(updatedData),
       });
       if (!res.ok) throw new Error(`Server responded ${res.status}`);
@@ -55,7 +56,7 @@ export const EmployeeProvider = ({ children }) => {
 
   const deleteEmployee = async (id) => {
     try {
-      await fetch(`${API_URL}/employees/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/employees/${id}`, { method: 'DELETE', credentials: 'include' });
       setEmployees(prev => prev.filter(e => e.id !== id));
     } catch (err) {
       console.error('Failed to delete employee:', err);

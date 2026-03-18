@@ -23,12 +23,12 @@ export const LeavesProvider = ({ children }) => {
     try {
       if (user.role === 'superadmin') {
         // Superadmin sees ALL requests (flat list from all employees)
-        const res  = await fetch(`${API_URL}/leaves/all`);
+        const res  = await fetch(`${API_URL}/leaves/all`, { credentials: 'include' });
         const data = await res.json();
         setLeaves(data.leaves || []);
       } else {
         // Normal admin sees own requests + balance in one call
-        const res  = await fetch(`${API_URL}/leaves/my/${user.id}`);
+        const res  = await fetch(`${API_URL}/leaves/my/${user.id}`, { credentials: 'include' });
         const data = await res.json();
         setLeaves(data.requests || []);
         if (data.balance) setBalance(data.balance);
@@ -56,6 +56,7 @@ export const LeavesProvider = ({ children }) => {
     const res  = await fetch(`${API_URL}/leaves/apply`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({
         employeeId:   user.id,
         employeeName: user.name,
@@ -76,6 +77,7 @@ export const LeavesProvider = ({ children }) => {
     const res  = await fetch(`${API_URL}/leaves/${leave.employeeLeaveId}/request/${leave._id}/status`, {
       method:  'PATCH',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ status, processedBy: user?.id }),
     });
     const data = await res.json();

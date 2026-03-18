@@ -30,6 +30,7 @@ const LoginForm = ({ onLogin }) => {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ employeeId: employeeCode, password })
       });
 
@@ -74,6 +75,7 @@ const LoginForm = ({ onLogin }) => {
       const response = await fetch(`${API_URL}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ employeeId: employeeCode, name, newPassword: password })
       });
 

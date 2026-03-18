@@ -167,6 +167,7 @@ const AddEmployee = () => {
       const response = await fetch(`${API_URL}/employees/add-employee`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body:    JSON.stringify(payload),
       });
 

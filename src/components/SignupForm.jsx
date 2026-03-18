@@ -20,6 +20,7 @@ const SignupForm = ({ onSignupSuccess }) => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           employeeId: employeeCode,
           name,

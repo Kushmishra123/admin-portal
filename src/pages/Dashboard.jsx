@@ -151,7 +151,8 @@ const Dashboard = () => {
     if (user && (user.role === 'admin' || user.role === 'superadmin')) {
       const currentUserId = user.employeeId || user.id;
       const newSocket = io(API_BASE_URL, {
-        query: { employeeId: currentUserId }
+        query: { employeeId: currentUserId },
+        withCredentials: true
       });
 
       setSocket(newSocket);
