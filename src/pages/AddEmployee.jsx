@@ -4,6 +4,7 @@ import { API_URL } from '../config';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import { useEmployee } from '../context/EmployeeContext';
+import { useUser } from '../context/UserContext';
 import '../styles/dashboard.css';
 
 const DEPARTMENTS = ['ADMIN (1 offs/wk)', 'Security', 'HR', 'Design', 'Quality', 'Sales', 'SOC', 'NOC', 'FMS', 'Operations', 'Marketing', 'Compliance', 'CXO', 'Directorship'];
@@ -74,10 +75,14 @@ const Textarea = ({ label, field, placeholder, form, errors, handleChange, hint,
 
 const AddEmployee = () => {
   const navigate = useNavigate();
+  const { user } = useUser();
   const { refreshEmployees } = useEmployee();
   const [showToast, setShowToast]       = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [serverError, setServerError]   = useState('');
+
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMsg, setResetMsg] = useState('');
 
   const [form, setForm] = useState({
     employeeCode:    '',
@@ -97,7 +102,7 @@ const AddEmployee = () => {
     kra:             '',
     kpa:             '',
     // 🔐 Login credentials
-    email:           '',
+    targetCode:      '',
     password:        '',
     confirmPassword: '',
   });
@@ -142,7 +147,7 @@ const AddEmployee = () => {
     const payload = {
       employeeCode: form.employeeCode,
       fullName:     form.fullName,
-      email:        form.email     || undefined,
+      email:        form.targetCode || undefined,
       password:     form.password,
       designation:  form.designation,
       department:   form.department,
@@ -189,7 +194,50 @@ const AddEmployee = () => {
     } catch (err) {
       console.error('❌ [ADD-EMPLOYEE FORM] Network error:', err);
       setServerError('Network error. Make sure the backend server is running.');
+    } finally {
       setSubmitLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    setResetMsg('');
+    if (!form.targetCode) {
+      setResetMsg('❌ Please enter the Employee Code to reset.');
+      return;
+    }
+    if (!form.password || form.password.length < 6) {
+      setResetMsg('❌ New password must be at least 6 characters.');
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      setResetMsg('❌ Passwords do not match.');
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/auth/admin-reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          adminEmployeeId: user?.id,
+          targetEmployeeId: form.targetCode,
+          newPassword: form.password,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setResetMsg(`❌ ${data.message || 'Password reset failed.'}`);
+      } else {
+        setResetMsg(`✅ ${data.message || 'Password reset successfully!'}`);
+        setForm(f => ({ ...f, targetCode: '', password: '', confirmPassword: '' }));
+      }
+    } catch (err) {
+      setResetMsg('❌ Network error. Please try again.');
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -260,20 +308,45 @@ const AddEmployee = () => {
 
               {/* 🔐 Login Credentials */}
               <div className="form-card" style={{ marginBottom: 24, border: '1px solid rgba(92, 184, 92, 0.2)', background: 'rgba(92,184,92,0.03)' }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#5cb85c', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  🔐 Login Credentials
-                </h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 700, color: '#5cb85c', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+                    🔐 Login Credentials
+                  </h3>
+                  {user?.role === 'superadmin' && (
+                    <button
+                      type="button"
+                      onClick={handleResetPassword}
+                      disabled={resetLoading}
+                      style={{
+                        background: '#fbbf24', color: '#000', border: 'none', borderRadius: 6,
+                        padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: resetLoading ? 'wait' : 'pointer'
+                      }}
+                    >
+                      {resetLoading ? '⏳ Resetting...' : '🔄 Reset Password'}
+                    </button>
+                  )}
+                </div>
                 <p style={{ fontSize: 12, color: '#6b7b6b', marginBottom: 20 }}>
-                  These will let the employee sign in to the portal. Password is securely hashed before storage.
+                  These will let the employee sign in to the portal. Super Admins can also reset passwords here.
                 </p>
 
-                <Field
-                  label="Email Address (optional)"
-                  field="email"
-                  type="email"
-                  placeholder="e.g. john@quisitive.com  —  auto-generated if blank"
-                  form={form} errors={errors} handleChange={handleChange}
-                />
+                {user?.role === 'superadmin' ? (
+                  <Field
+                    label="Employee Code (For Password Reset)"
+                    field="targetCode"
+                    type="text"
+                    placeholder="e.g. QBL-E0021"
+                    form={form} errors={errors} handleChange={handleChange}
+                  />
+                ) : (
+                  <Field
+                    label="Email Address (optional)"
+                    field="targetCode"
+                    type="email"
+                    placeholder="e.g. john@quisitive.com  —  auto-generated if blank"
+                    form={form} errors={errors} handleChange={handleChange}
+                  />
+                )}
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   <Field
@@ -289,6 +362,11 @@ const AddEmployee = () => {
                     form={form} errors={errors} handleChange={handleChange}
                   />
                 </div>
+                {resetMsg && (
+                  <div style={{ marginTop: 12, fontSize: 13, color: resetMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>
+                    {resetMsg}
+                  </div>
+                )}
               </div>
 
               {/* Server Error Banner */}

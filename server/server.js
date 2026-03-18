@@ -171,33 +171,137 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// Reset Password Route
+// Reset Password Route (requires current password verification)
 app.post('/api/auth/reset-password', async (req, res) => {
-  const { employeeId, name, newPassword } = req.body;
+  const { employeeId, currentPassword, newPassword } = req.body;
 
-  if (!employeeId || !name || !newPassword) {
-    return res.status(400).json({ message: "Employee ID, Name and New Password are required" });
+  if (!employeeId || !currentPassword || !newPassword) {
+    return res.status(400).json({ message: "Employee ID, current password, and new password are required." });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ message: "New password must be at least 6 characters." });
   }
 
   try {
-    const user = await User.findOne({
-      employeeId: employeeId.toUpperCase(),
-      name: { $regex: new RegExp(`^${name}$`, 'i') } // case-insensitive name check
-    });
+    const user = await User.findOne({ employeeId: employeeId.toUpperCase() });
 
     if (!user) {
-      return res.status(404).json({ message: "Identity verification failed. Please check your Employee ID and Name." });
+      return res.status(404).json({ message: "User not found. Please check your Employee ID." });
     }
 
-    // Hash the new password
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect." });
+    }
+
+    // Hash and save new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     await user.save();
 
-    res.status(200).json({ message: "Password updated successfully! You can now log in with your new password." });
+    res.status(200).json({ message: "Password updated successfully! Please log in with your new password." });
   } catch (error) {
     console.error("Reset password error:", error);
-    res.status(500).json({ message: "Server error during password reset" });
+    res.status(500).json({ message: "Server error during password reset." });
+  }
+});
+
+// Super Admin Reset Password Route (no current password required)
+app.post('/api/auth/admin-reset-password', async (req, res) => {
+  const { adminEmployeeId, targetEmployeeId, newPassword } = req.body;
+
+  if (!adminEmployeeId || !targetEmployeeId || !newPassword) {
+    return res.status(400).json({ message: "Admin ID, target Employee ID, and new password are required." });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ message: "New password must be at least 6 characters." });
+  }
+
+  try {
+    // Verify requester is a superadmin
+    const adminUser = await User.findOne({ employeeId: adminEmployeeId.toUpperCase() });
+    if (!adminUser || adminUser.role !== 'superadmin') {
+      return res.status(403).json({ message: "Access denied. Super Admin privileges required." });
+    }
+
+    // Find target employee
+    const targetUser = await User.findOne({ employeeId: targetEmployeeId.toUpperCase() });
+    if (!targetUser) {
+      return res.status(404).json({ message: "Target employee not found. Please check the Employee ID." });
+    }
+
+    // Hash and save new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    targetUser.password = hashedPassword;
+    await targetUser.save();
+
+    res.status(200).json({ message: `Password for ${targetUser.name} (${targetUser.employeeId}) has been reset successfully.` });
+  } catch (error) {
+    console.error("Admin reset password error:", error);
+    res.status(500).json({ message: "Server error during admin password reset." });
+  }
+});
+
+// ─── ADMIN RESET PASSWORD (RESTful, with activity log) ───────────────────────
+// POST /api/admin/reset-password/:employeeId
+// Body: { adminEmployeeId, newPassword }
+// Only accessible by superadmin. Logs who reset whose password.
+app.post('/api/admin/reset-password/:employeeId', async (req, res) => {
+  const { employeeId } = req.params;
+  const { adminEmployeeId, newPassword } = req.body;
+
+  if (!adminEmployeeId || !newPassword) {
+    return res.status(400).json({ message: 'Admin Employee ID and new password are required.' });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ message: 'New password must be at least 6 characters.' });
+  }
+
+  try {
+    // ── Step 1: Verify requester is superadmin ──
+    const adminUser = await User.findOne({ employeeId: adminEmployeeId.toUpperCase() });
+    if (!adminUser || adminUser.role !== 'superadmin') {
+      console.warn(`🚫 [ADMIN-RESET] Unauthorised attempt by ${adminEmployeeId} to reset ${employeeId}`);
+      return res.status(403).json({ message: 'Access denied. Super Admin privileges required.' });
+    }
+
+    // ── Step 2: Find target employee ──
+    const targetUser = await User.findOne({ employeeId: employeeId.toUpperCase() });
+    if (!targetUser) {
+      return res.status(404).json({ message: `Employee ${employeeId.toUpperCase()} not found.` });
+    }
+
+    // ── Step 3: Hash & save new password ──
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    targetUser.password = hashedPassword;
+    await targetUser.save();
+
+    // ── Step 4: Activity log (console — extend to DB later) ──
+    const timestamp = new Date().toISOString();
+    console.log(`\n🔑 [ADMIN-RESET] Password Reset Activity Log`);
+    console.log(`   Admin   : ${adminUser.name} (${adminUser.employeeId})`);
+    console.log(`   Target  : ${targetUser.name} (${targetUser.employeeId})`);
+    console.log(`   Time    : ${timestamp}`);
+    console.log(`   Status  : SUCCESS`);
+
+    res.status(200).json({
+      message: `Password for ${targetUser.name} (${targetUser.employeeId}) has been reset successfully.`,
+      resetBy: adminUser.name,
+      resetAt: timestamp,
+      targetEmployee: {
+        employeeId: targetUser.employeeId,
+        name: targetUser.name,
+        email: targetUser.email
+      }
+      // ❌ Password is NEVER returned in response
+    });
+  } catch (error) {
+    console.error('❌ [ADMIN-RESET] Error:', error.message);
+    res.status(500).json({ message: 'Server error during password reset.' });
   }
 });
 

@@ -18,7 +18,7 @@ const AboutCompany = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div className="section-grid">
             {/* About Section */}
             <div className="form-card" style={{ gridColumn: '1 / -1' }}>
               <div className="settings-section-title">🏢 About Us</div>

@@ -857,6 +857,11 @@
 }
 .toast-icon { font-size: 20px; }
 .toast-msg { font-size: 14px; font-weight: 600; color: #5cb85c; }
+.toast.toast-error {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.08);
+}
+.toast.toast-error .toast-msg { color: #f87171; }
 @keyframes slide-in {
   from { transform: translateY(20px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
