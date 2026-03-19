@@ -416,7 +416,7 @@ const EmployeeDetailModal = ({ emp, onClose }) => {
             display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px'
           }}>
             {[
-              ['Department', emp.department], ['Designation', emp.designation],
+              ['Email', emp.email], ['Department', emp.department], ['Designation', emp.designation],
               ['Gender', emp.gender], ['Date of Birth', emp.dob], ['Joining Date', emp.joinDate]
             ].map(([label, val]) => (
               <div key={label}>
@@ -447,6 +447,7 @@ const EditEmployeeModal = ({ emp, onClose, onSave }) => {
   const [form, setForm] = useState({
     code: emp.id || '',
     name: emp.name || '',
+    email: emp.email || '',
     designation: emp.designation || '',
     gender: emp.gender || 'Male',
     joinDate: emp.joinDate || '',
@@ -495,6 +496,10 @@ const EditEmployeeModal = ({ emp, onClose, onSave }) => {
               <input type="text" value={form.code} onChange={e => handleChange('code', e.target.value)} style={inputStyle} /></div>
             <div><label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#6b7b6b', fontWeight: 500 }}>Name</label>
               <input type="text" value={form.name} onChange={e => handleChange('name', e.target.value)} style={inputStyle} /></div>
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#6b7b6b', fontWeight: 500 }}>Gmail (Email Address)</label>
+            <input type="email" value={form.email} onChange={e => handleChange('email', e.target.value)} style={inputStyle} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
             <div><label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#6b7b6b', fontWeight: 500 }}>Designation</label>
@@ -583,8 +588,14 @@ const Employees = () => {
   const [resetPwEmp, setResetPwEmp]       = useState(null);
 
   const handleSaveEdit = (form) => {
+    if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) {
+      alert("Please enter a valid structure for Gmail / Email address.");
+      return;
+    }
+
     updateEmployee(form.code, {
       name: form.name,
+      email: form.email,
       designation: form.designation,
       gender: form.gender,
       department: form.department,

@@ -66,20 +66,47 @@ const Settings = () => {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    if (setUser && user) {
-      const nameParts = profile.name.trim().split(' ');
-      let newInitials = user.initials;
-      if (nameParts.length > 0 && nameParts[0].length > 0) {
-        newInitials = nameParts[0][0].toUpperCase();
-        if (nameParts.length > 1 && nameParts[nameParts.length - 1].length > 0) {
-          newInitials += nameParts[nameParts.length - 1][0].toUpperCase();
-        }
-      }
-      setUser({ ...user, name: profile.name, email: profile.email, bio: profile.bio, initials: newInitials });
+    
+    if (profile.email && !/^\S+@\S+\.\S+$/.test(profile.email)) {
+      showNotification("Invalid email format.", "error");
+      return;
     }
-    showNotification('Settings saved successfully!');
+
+    try {
+      const res = await fetch(`${API_URL}/auth/update`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          employeeId: user?.id || user?.employeeId,
+          email: profile.email
+        }),
+      });
+
+      const data = await res.json();
+      
+      if (!res.ok) {
+        showNotification(data.message || 'Settings update failed.', 'error');
+        return;
+      }
+
+      if (setUser && user) {
+        const nameParts = profile.name.trim().split(' ');
+        let newInitials = user.initials;
+        if (nameParts.length > 0 && nameParts[0].length > 0) {
+          newInitials = nameParts[0][0].toUpperCase();
+          if (nameParts.length > 1 && nameParts[nameParts.length - 1].length > 0) {
+            newInitials += nameParts[nameParts.length - 1][0].toUpperCase();
+          }
+        }
+        setUser({ ...user, name: profile.name, email: profile.email, bio: profile.bio, initials: newInitials });
+      }
+      showNotification('Settings saved successfully!');
+    } catch (error) {
+      showNotification('Network error. Failed to save.', 'error');
+    }
   };
 
   const toggleNotif = key => setNotifs(n => ({ ...n, [key]: !n[key] }));
@@ -391,17 +418,7 @@ const Settings = () => {
               ))}
             </div>
 
-            {/* ── Danger Zone ── */}
-            <div className="form-card">
-              <div className="settings-section-title">⚠️ Account Settings</div>
-              <div style={{ padding: '16px', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 12 }}>
-                <p style={{ fontSize: 14, fontWeight: 600, color: '#fca5a5', marginBottom: 8 }}>Danger Zone</p>
-                <p style={{ fontSize: 12, color: '#6b7b6b', marginBottom: 12 }}>These actions are irreversible</p>
-                <button className="btn-secondary" style={{ fontSize: 13, borderColor: 'rgba(239,68,68,0.3)', color: '#f87171' }}>
-                  🗑 Delete Account
-                </button>
-              </div>
-            </div>
+
 
           </div>
         </div>

@@ -39,6 +39,16 @@ const employeeDetailSchema = new mongoose.Schema(
     // Display helpers
     color:       { type: String, default: '#0f2d1e' },
     phone:       { type: String, default: '' },
+    email: { 
+      type: String, 
+      default: '', 
+      validate: {
+        validator: function(v) {
+          return v === '' || /^\S+@\S+\.\S+$/.test(v);
+        },
+        message: 'Please enter a valid email address'
+      }
+    },
   },
   { timestamps: true }
 );

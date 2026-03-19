@@ -13,19 +13,19 @@ const Sidebar = () => {
   };
 
   const adminLinks = [
-    { to: '/employees',  icon: '👥', label: 'Employee Directory' },
-    { to: '/analytics',  icon: '📈', label: 'Analytics'          },
-    { to: '/dashboard',  icon: '📊', label: 'Dashboard'          },
-    { to: '/manage-leaves', icon: '📅', label: 'Manage Leaves'  },
-    { to: '/settings',   icon: '⚙️', label: 'Settings'           },
-    { to: '/about',      icon: '🏢', label: 'About Company'      },
+    { to: '/employees', icon: '👥', label: 'Employee Directory' },
+    { to: '/analytics', icon: '📈', label: 'Analytics' },
+    { to: '/dashboard', icon: '📊', label: 'Dashboard' },
+    { to: '/manage-leaves', icon: '📅', label: 'Manage Leaves' },
+    { to: '/settings', icon: '⚙️', label: 'Settings' },
+    { to: '/about', icon: '🏢', label: 'About Company' },
   ];
 
   const employeeLinks = [
-    { to: '/dashboard',  icon: '📊', label: 'Dashboard'  },
-    { to: '/my-leaves',  icon: '📅', label: 'My Leaves'  },
-    { to: '/about',      icon: '🏢', label: 'About Company'      },
-    { to: '/settings',   icon: '⚙️', label: 'Settings'   },
+    { to: '/dashboard', icon: '📊', label: 'Dashboard' },
+    { to: '/my-leaves', icon: '📅', label: 'My Leaves' },
+    { to: '/about', icon: '🏢', label: 'About Company' },
+    { to: '/settings', icon: '⚙️', label: 'Settings' },
   ];
 
   const links = user?.role === 'superadmin' ? adminLinks : employeeLinks;
@@ -33,7 +33,7 @@ const Sidebar = () => {
   return (
     <div className={`left-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
       {/* Toggle Button */}
-      <button 
+      <button
         className="sidebar-toggle-btn"
         onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
@@ -45,8 +45,8 @@ const Sidebar = () => {
       <div className="sidebar-brand">
         <img src={logo} alt="QB Logo" style={{ width: 42, height: 'auto', borderRadius: 10 }} />
         <div className="brand-text">
-          <h2 className="brand-name">Quisitive</h2>
-          <p className="brand-sub">Business Portal</p>
+          <h2 className="brand-name">Quisitive Business</h2>
+          <p className="brand-sub">Employee Portal</p>
         </div>
       </div>
 
@@ -81,7 +81,7 @@ const Sidebar = () => {
           </div>
         </div>
         <button className="signout-btn" onClick={onLogout}>
-          <span className="signout-icon">⏻</span> 
+          <span className="signout-icon">⏻</span>
           <span className="signout-text">Sign Out</span>
         </button>
       </div>

@@ -3,7 +3,17 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
 const User = require('./models/User');
+
+// Setup Nodemailer transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
 
 const http = require('http');
 const { Server } = require('socket.io');
@@ -11,7 +21,7 @@ const { Server } = require('socket.io');
 const app = express();
 const server = http.createServer(app);
 const allowedOrigins = [
-  'https://admin-portal-navy-two.vercel.app', 
+  'https://admin-portal-navy-two.vercel.app',
   'http://localhost:5173',
   'http://127.0.0.1:5173'
 ];
@@ -244,7 +254,45 @@ app.post('/api/auth/admin-reset-password', async (req, res) => {
     res.status(500).json({ message: "Server error during admin password reset." });
   }
 });
+// Update Own Profile Route 
+app.put('/api/auth/update', async (req, res) => {
+  const { employeeId, email } = req.body;
+  if (!employeeId) return res.status(400).json({ message: "Employee ID is required." });
 
+  // Basic Regex validation
+  if (email && !/^\S+@\S+\.\S+$/.test(email)) {
+    return res.status(400).json({ message: "Invalid email format." });
+  }
+
+  try {
+    const user = await User.findOne({ employeeId: employeeId.toUpperCase() });
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    if (email) user.email = email;
+
+    await user.save();
+
+    // Also update EmployeeDetail if it exists
+    await EmployeeDetail.findOneAndUpdate(
+      { userId: user._id },
+      { email }
+    );
+
+    res.status(200).json({
+      message: "Profile updated successfully.",
+      user: {
+        employeeId: user.employeeId,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        initials: user.initials
+      }
+    });
+  } catch (error) {
+    console.error("Profile update error:", error);
+    res.status(500).json({ message: "Server error during profile update." });
+  }
+});
 // ─── ADMIN RESET PASSWORD (RESTful, with activity log) ───────────────────────
 // POST /api/admin/reset-password/:employeeId
 // Body: { adminEmployeeId, newPassword }
@@ -495,7 +543,7 @@ app.get('/api/employees', async (req, res) => {
       return {
         id: d.employeeId,
         name: u.name || '',
-        email: u.email || '',
+        email: d.email || u.email || '',
         initials: u.initials || '',
         role: u.role || 'admin',
         designation: d.designation,
@@ -575,7 +623,8 @@ app.put('/api/employees/:employeeId', async (req, res) => {
       startTime: updateData.startTime,
       endTime: updateData.endTime,
       docUrl: updateData.docUrl,
-      phone: updateData.phone
+      phone: updateData.phone,
+      email: updateData.email
     };
 
     // Remove undefined fields
@@ -847,7 +896,7 @@ app.delete('/api/messages/:user1/:user2', async (req, res) => {
     if (!requesterId) {
       return res.status(401).json({ error: 'Unauthorized: No requester ID provided.' });
     }
-    
+
     if (requesterId !== user1 && requesterId !== user2 && requesterRole !== 'superadmin' && requesterRole !== 'admin') {
       return res.status(403).json({ error: 'Forbidden: You do not have permission to delete this chat history.' });
     }
