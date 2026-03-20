@@ -3,17 +3,17 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
+// const nodemailer = require('nodemailer');
 const User = require('./models/User');
 
 // Setup Nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+// const transporter = nodemailer.createTransport({
+//   service: 'gmail',
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS
+//   }
+// });
 
 const http = require('http');
 const { Server } = require('socket.io');
@@ -172,13 +172,42 @@ app.post('/api/auth/login', async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        initials: user.initials
+        initials: user.initials,
+        policyStatus: user.policyStatus ?? false,
       }
     });
 
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Server error during login" });
+  }
+});
+
+// ─── GET Policy Status ─────────────────────────────────────────────────────
+app.get('/api/auth/policy-status/:employeeId', async (req, res) => {
+  try {
+    const user = await User.findOne({ employeeId: req.params.employeeId.toUpperCase() });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.status(200).json({ policyStatus: user.policyStatus ?? false });
+  } catch (error) {
+    console.error('Policy status fetch error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ─── PATCH Policy Status ───────────────────────────────────────────────────
+app.patch('/api/auth/policy-status/:employeeId', async (req, res) => {
+  const { policyStatus } = req.body;
+  try {
+    const user = await User.findOne({ employeeId: req.params.employeeId.toUpperCase() });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    user.policyStatus = policyStatus;
+    await user.save();
+    console.log(`✅ [POLICY] ${user.name} (${user.employeeId}) acknowledged policy: ${policyStatus}`);
+    res.status(200).json({ message: 'Policy status updated', policyStatus: user.policyStatus });
+  } catch (error) {
+    console.error('Policy status update error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
