@@ -89,10 +89,10 @@ const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wis
     }
   };
 
-  const handleDeleteChat = async () => {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const confirmDeleteChat = async () => {
     if (!selectedUser || !user) return;
-    const confirmDelete = window.confirm('Are you sure you want to delete this chat history?');
-    if (!confirmDelete) return;
 
     try {
       const currentUserId = user.employeeId || user.id;
@@ -106,17 +106,33 @@ const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wis
             !(msg.senderId === currentUserId && msg.receiverId === selectedUser.id) &&
             !(msg.senderId === selectedUser.id && msg.receiverId === currentUserId)
         ));
-        alert('Chat history deleted successfully');
+        setShowDeleteConfirm(false); // Close the modal
       } else {
-        alert('Failed to delete chat history');
+        alert('Failed to delete message');
       }
     } catch (error) {
       console.error('Failed to delete chat:', error);
-      alert('An error occurred while deleting the chat history');
+      alert('An error occurred while deleting the message');
     }
   };
 
+  const handleDeleteChat = () => {
+    if (!selectedUser || !user) return;
+    
+    const currentUserId = user.employeeId || user.id;
+    const hasMessages = messages.some(
+      (msg) =>
+        (msg.senderId === currentUserId && msg.receiverId === selectedUser.id) ||
+        (msg.senderId === selectedUser.id && msg.receiverId === currentUserId)
+    );
 
+    if (!hasMessages) {
+      alert('No messages found or messages are already deleted.');
+      return;
+    }
+
+    setShowDeleteConfirm(true);
+  };
   if (!isOpen) return null;
 
   const currentUserId = user ? (user.employeeId || user.id) : null;
@@ -264,6 +280,30 @@ const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wis
         </div>
 
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="chat-delete-modal-overlay">
+          <div className="chat-delete-modal">
+            <h3 className="chat-delete-modal-title">Delete Message</h3>
+            <p className="chat-delete-modal-text">Are you sure you want to delete this message?</p>
+            <div className="chat-delete-modal-actions">
+              <button 
+                className="chat-delete-btn-cancel" 
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="chat-delete-btn-confirm" 
+                onClick={confirmDeleteChat}
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { UserContext } from './context/UserContext';
 import { LeavesProvider } from './context/LeavesContext';
 import { EmployeeProvider } from './context/EmployeeContext';
+import { LoaderProvider } from './context/LoaderContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
@@ -49,46 +50,48 @@ function App() {
 
   return (
     <UserContext.Provider value={{ user, setUser, handleLogout, isSidebarCollapsed, setIsSidebarCollapsed }}>
-      <EmployeeProvider>
-        <LeavesProvider>
-          <Router>
-          <Routes>
-            {/* Root — redirect based on role */}
-            <Route
-              path="/"
-              element={
-                !user ? (
-                  <Login onLogin={handleLogin} />
-                ) : (
-                  <Navigate to={user.role === 'superadmin' ? '/employees' : '/dashboard'} />
-                )
-              }
-            />
+      <LoaderProvider>
+        <EmployeeProvider>
+          <LeavesProvider>
+            <Router>
+            <Routes>
+              {/* Root — redirect based on role */}
+              <Route
+                path="/"
+                element={
+                  !user ? (
+                    <Login onLogin={handleLogin} />
+                  ) : (
+                    <Navigate to={user.role === 'superadmin' ? '/employees' : '/dashboard'} />
+                  )
+                }
+              />
 
-            {/* Shared Routes */}
-            <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/" />} />
-            <Route path="/settings"  element={user ? <Settings />  : <Navigate to="/" />} />
-            <Route path="/about"     element={user ? <AboutCompany /> : <Navigate to="/" />} />
+              {/* Shared Routes */}
+              <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/" />} />
+              <Route path="/settings"  element={user ? <Settings />  : <Navigate to="/" />} />
+              <Route path="/about"     element={user ? <AboutCompany /> : <Navigate to="/" />} />
 
-            {/* Superadmin-only Routes */}
-            <Route path="/employees"    element={user?.role === 'superadmin' ? <Employees />   : <Navigate to="/" />} />
-            <Route path="/add-employee" element={user?.role === 'superadmin' ? <AddEmployee /> : <Navigate to="/" />} />
-            <Route path="/analytics"    element={user?.role === 'superadmin' ? <Analytics />   : <Navigate to="/" />} />
-            <Route path="/manage-leaves" element={user?.role === 'superadmin' ? <ManageLeaves /> : <Navigate to="/" />} />
+              {/* Superadmin-only Routes */}
+              <Route path="/employees"    element={user?.role === 'superadmin' ? <Employees />   : <Navigate to="/" />} />
+              <Route path="/add-employee" element={user?.role === 'superadmin' ? <AddEmployee /> : <Navigate to="/" />} />
+              <Route path="/analytics"    element={user?.role === 'superadmin' ? <Analytics />   : <Navigate to="/" />} />
+              <Route path="/manage-leaves" element={user?.role === 'superadmin' ? <ManageLeaves /> : <Navigate to="/" />} />
 
-            {/* Admin-only Routes (non-superadmin logged-in users) */}
-            <Route path="/my-leaves" element={user?.role === 'admin' ? <MyLeaves /> : <Navigate to="/" />} />
+              {/* Admin-only Routes (non-superadmin logged-in users) */}
+              <Route path="/my-leaves" element={user?.role === 'admin' ? <MyLeaves /> : <Navigate to="/" />} />
 
-            {/* Public Signup Page */}
-            <Route path="/signup" element={<Signup />} />
+              {/* Public Signup Page */}
+              <Route path="/signup" element={<Signup />} />
 
-            {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </Router>
-        <BirthdayPopup />
-        </LeavesProvider>
-      </EmployeeProvider>
+              {/* Catch-all */}
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </Router>
+          <BirthdayPopup />
+          </LeavesProvider>
+        </EmployeeProvider>
+      </LoaderProvider>
     </UserContext.Provider>
   );
 }
