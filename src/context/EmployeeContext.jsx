@@ -45,12 +45,16 @@ export const EmployeeProvider = ({ children }) => {
       });
       if (!res.ok) throw new Error(`Server responded ${res.status}`);
       
-      setEmployees(prev =>
-        prev.map(e => (e.id === id ? { ...e, ...updatedData } : e))
-      );
+      if (updatedData.dob) {
+        localStorage.removeItem(`birthdayPopupShown_${id}_${updatedData.dob}`);
+      }
+      
+      await fetchEmployees();
+      return true;
     } catch (err) {
       console.error('Failed to update employee:', err);
       setError(err.message);
+      return false;
     }
   };
 

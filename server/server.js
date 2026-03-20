@@ -613,7 +613,7 @@ app.put('/api/employees/:employeeId', async (req, res) => {
       designation: updateData.designation,
       department: updateData.department,
       gender: updateData.gender,
-      dob: updateData.dob,
+      dob: updateData.dob !== undefined ? updateData.dob : undefined,
       joinDate: updateData.joinDate,
       assets: updateData.assets,
       kra: updateData.kra,

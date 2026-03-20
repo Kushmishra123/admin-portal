@@ -13,34 +13,34 @@ import '../styles/dashboard.css';
 // ─────────────────────────────────────────────────────────────────────────────
 const getStrength = (pwd) => {
   if (!pwd) return null;
-  if (pwd.length < 6)                                       return { label: 'Too short', color: '#f87171', pct: 20 };
-  if (pwd.length < 8)                                       return { label: 'Weak',      color: '#fb923c', pct: 40 };
-  if (!/[A-Z]/.test(pwd) || !/[0-9]/.test(pwd))            return { label: 'Fair',      color: '#fbbf24', pct: 65 };
-  if (!/[^A-Za-z0-9]/.test(pwd))                           return { label: 'Good',      color: '#a3e635', pct: 80 };
-  return                                                           { label: 'Strong',    color: '#4ade80', pct: 100 };
+  if (pwd.length < 6) return { label: 'Too short', color: '#f87171', pct: 20 };
+  if (pwd.length < 8) return { label: 'Weak', color: '#fb923c', pct: 40 };
+  if (!/[A-Z]/.test(pwd) || !/[0-9]/.test(pwd)) return { label: 'Fair', color: '#fbbf24', pct: 65 };
+  if (!/[^A-Za-z0-9]/.test(pwd)) return { label: 'Good', color: '#a3e635', pct: 80 };
+  return { label: 'Strong', color: '#4ade80', pct: 100 };
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reset Password Modal — 3 stages: form → confirm → done
 // ─────────────────────────────────────────────────────────────────────────────
 const ResetPasswordModal = ({ emp, adminId, onClose }) => {
-  const [stage, setStage]               = useState('form');  // 'form' | 'confirm' | 'done'
-  const [newPassword, setNewPassword]   = useState('');
-  const [confirmPwd, setConfirmPwd]     = useState('');
-  const [showNew, setShowNew]           = useState(false);
-  const [showConfirm, setShowConfirm]   = useState(false);
-  const [error, setError]               = useState('');
-  const [loading, setLoading]           = useState(false);
-  const [successData, setSuccessData]   = useState(null);
+  const [stage, setStage] = useState('form');  // 'form' | 'confirm' | 'done'
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPwd, setConfirmPwd] = useState('');
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [successData, setSuccessData] = useState(null);
 
   const strength = getStrength(newPassword);
 
   const validate = () => {
-    if (!newPassword)                          return 'Please enter a new password.';
-    if (newPassword.length < 6)               return 'Password must be at least 6 characters.';
-    if (!/[A-Z]/.test(newPassword))           return 'Password must contain at least one uppercase letter.';
-    if (!/[0-9]/.test(newPassword))           return 'Password must contain at least one number.';
-    if (newPassword !== confirmPwd)           return 'Passwords do not match.';
+    if (!newPassword) return 'Please enter a new password.';
+    if (newPassword.length < 6) return 'Password must be at least 6 characters.';
+    if (!/[A-Z]/.test(newPassword)) return 'Password must contain at least one uppercase letter.';
+    if (!/[0-9]/.test(newPassword)) return 'Password must contain at least one number.';
+    if (newPassword !== confirmPwd) return 'Passwords do not match.';
     return null;
   };
 
@@ -417,7 +417,7 @@ const EmployeeDetailModal = ({ emp, onClose }) => {
           }}>
             {[
               ['Email', emp.email], ['Department', emp.department], ['Designation', emp.designation],
-              ['Gender', emp.gender], ['Date of Birth', emp.dob], ['Joining Date', emp.joinDate]
+              ['Gender', emp.gender], ['Date of Birth', emp.dob ? new Date(emp.dob).toLocaleDateString('en-GB') : ''], ['Joining Date', emp.joinDate]
             ].map(([label, val]) => (
               <div key={label}>
                 <div style={{ color: '#6b7b6b', fontSize: 12, marginBottom: 4 }}>{label}</div>
@@ -451,7 +451,7 @@ const EditEmployeeModal = ({ emp, onClose, onSave }) => {
     designation: emp.designation || '',
     gender: emp.gender || 'Male',
     joinDate: emp.joinDate || '',
-    dob: emp.dob || '',
+    dob: emp.dob ? String(emp.dob).substring(0, 10) : '',
     assets: emp.assets !== '-' ? emp.assets : '',
     docUrl: emp.docUrl || '',
     department: emp.department || '',
@@ -583,17 +583,18 @@ const Employees = () => {
   const { updateEmployee } = useEmployee();
   const { user } = useUser();
 
-  const [selectedEmp, setSelectedEmp]     = useState(null);
-  const [editingEmp, setEditingEmp]       = useState(null);
-  const [resetPwEmp, setResetPwEmp]       = useState(null);
+  const [selectedEmp, setSelectedEmp] = useState(null);
+  const [editingEmp, setEditingEmp] = useState(null);
+  const [resetPwEmp, setResetPwEmp] = useState(null);
+  const [showToast, setShowToast] = useState(false);
 
-  const handleSaveEdit = (form) => {
+  const handleSaveEdit = async (form) => {
     if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) {
       alert("Please enter a valid structure for Gmail / Email address.");
       return;
     }
 
-    updateEmployee(form.code, {
+    const success = await updateEmployee(form.code, {
       name: form.name,
       email: form.email,
       designation: form.designation,
@@ -611,6 +612,11 @@ const Employees = () => {
       kra: form.kra,
       kpa: form.kpa
     });
+
+    if (success) {
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
   };
 
   return (
@@ -661,6 +667,18 @@ const Employees = () => {
           adminId={user?.id}
           onClose={() => setResetPwEmp(null)}
         />
+      )}
+
+      {/* Success Toast */}
+      {showToast && (
+        <div style={{
+          position: 'fixed', bottom: 20, right: 20, zIndex: 9999,
+          background: 'rgba(74, 222, 128, 0.9)', color: '#000', padding: '12px 20px',
+          borderRadius: 8, fontWeight: 700, boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          animation: 'modalPop 0.3s ease'
+        }}>
+          ✅ Data has been saved in the database successfully.
+        </div>
       )}
     </div>
   );

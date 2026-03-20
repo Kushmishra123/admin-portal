@@ -123,34 +123,49 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
   React.useEffect(() => {
     const handleResize = () => setWindowSize({ width: window.innerWidth, height: window.innerHeight });
     window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  React.useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => {
-      clearInterval(timer);
-      window.removeEventListener('resize', handleResize);
-    };
+    return () => clearInterval(timer);
   }, []);
 
   const nextBirthday = React.useMemo(() => {
     if (!employees || employees.length === 0) return null;
     return employees
-      .filter(e => e.dob && e.status !== 'Inactive') 
+      .filter(e => e.dob && e.status !== 'Inactive')
       .map(e => {
-        const birthDate = new Date(e.dob);
+        let bMonth = 0;
+        let bDate = 1;
+
+        if (typeof e.dob === 'string' && e.dob.includes('-')) {
+          const parts = e.dob.split('-');
+          if (parts.length >= 3) {
+            bMonth = parseInt(parts[1], 10) - 1; // 0-indexed month
+            bDate = parseInt(parts[2], 10);
+          }
+        } else {
+          const d = new Date(e.dob);
+          bMonth = d.getMonth();
+          bDate = d.getDate();
+        }
+
         const today = new Date(currentTime);
         today.setHours(0, 0, 0, 0);
-        
-        let targetDate = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
-        
+
+        let targetDate = new Date(today.getFullYear(), bMonth, bDate);
+
         if (targetDate < today) {
-          targetDate = new Date(today.getFullYear() + 1, birthDate.getMonth(), birthDate.getDate());
+          targetDate = new Date(today.getFullYear() + 1, bMonth, bDate);
         }
-        
+
         let diff = targetDate.getTime() - currentTime.getTime();
-        
+
         const isToday = targetDate.getDate() === currentTime.getDate() && targetDate.getMonth() === currentTime.getMonth() && targetDate.getFullYear() === currentTime.getFullYear();
-        
+
         if (isToday) {
-            diff = 0;
+          diff = 0;
         }
 
         return { ...e, targetDate, diff, isToday };
@@ -160,18 +175,18 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
 
   React.useEffect(() => {
     if (nextBirthday) {
-       const isMyBirthday = (user?.employeeId === nextBirthday.id || user?.id === nextBirthday.id) || (user?.employeeId === nextBirthday._id || user?.id === nextBirthday._id);
-       
-       if (isMyBirthday && nextBirthday.diff <= 0) {
-         const currentId = user?.id || user?.employeeId;
-         const popupKey = `birthdayPopupShown_${currentId}_${nextBirthday.dob}`;
-         const hasShown = localStorage.getItem(popupKey);
+      const isMyBirthday = (user?.employeeId === nextBirthday.id || user?.id === nextBirthday.id) || (user?.employeeId === nextBirthday._id || user?.id === nextBirthday._id);
 
-         if (!hasShown) {
-           setShowPopup(true);
-           localStorage.setItem(popupKey, 'true');
-         }
-       }
+      if (isMyBirthday && nextBirthday.diff <= 0) {
+        const currentId = user?.id || user?.employeeId;
+        const popupKey = `birthdayPopupShown_${currentId}_${nextBirthday.dob}`;
+        const hasShown = localStorage.getItem(popupKey);
+
+        if (!hasShown) {
+          setShowPopup(true);
+          localStorage.setItem(popupKey, 'true');
+        }
+      }
     }
   }, [nextBirthday, user]);
 
@@ -212,15 +227,15 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
               </div>
               <div>
                 <p style={{ fontWeight: 600, fontSize: 15, color: '#fff' }}>
-                  {new Date(nextBirthday.dob).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                  {nextBirthday.targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
                 </p>
                 <div style={{ marginTop: 6 }}>
-                  <span style={{ 
-                    display: 'inline-block', 
-                    background: nextBirthday.diff <= 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(118,199,51,0.1)', 
-                    color: nextBirthday.diff <= 0 ? '#ef4444' : '#76c733', 
-                    padding: '4px 8px', 
-                    borderRadius: 6, 
+                  <span style={{
+                    display: 'inline-block',
+                    background: nextBirthday.diff <= 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(118,199,51,0.1)',
+                    color: nextBirthday.diff <= 0 ? '#ef4444' : '#76c733',
+                    padding: '4px 8px',
+                    borderRadius: 6,
                     fontWeight: 600,
                     fontFamily: 'monospace',
                     fontSize: 14
@@ -270,19 +285,19 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
 
       {showPopup && (
         <div style={{
-          position: 'fixed', inset: 0, 
+          position: 'fixed', inset: 0,
           background: 'radial-gradient(circle at center, rgba(14,21,16,0.95) 0%, rgba(10,15,10,0.98) 100%)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 9999, backdropFilter: 'blur(10px)',
           overflow: 'hidden'
         }}>
           {/* Confetti Animation */}
-          <Confetti 
-            width={windowSize.width} 
-            height={windowSize.height} 
-            recycle={true} 
-            numberOfPieces={400} 
-            gravity={0.15} 
+          <Confetti
+            width={windowSize.width}
+            height={windowSize.height}
+            recycle={true}
+            numberOfPieces={400}
+            gravity={0.15}
             colors={['#76c733', '#8ee04a', '#a9df7c', '#ffffff', '#4a5a4a']}
           />
 
@@ -328,13 +343,13 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
               transition: 'all 0.3s ease',
               zIndex: 100
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.8)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#d0e0d0'; e.currentTarget.style.transform = 'scale(1)'; }}
-            title="Close"
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.8)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#d0e0d0'; e.currentTarget.style.transform = 'scale(1)'; }}
+              title="Close"
             >✕</button>
 
             <div style={{ fontSize: 90, marginBottom: 20, animation: 'themeCakeBounce 2s infinite', willChange: 'transform' }}>🎂</div>
-            <h2 style={{ 
+            <h2 style={{
               fontSize: 42, fontWeight: 900, color: '#fff', margin: 0, marginBottom: 20,
               background: 'linear-gradient(90deg, #76c733, #a9df7c, #76c733)',
               backgroundSize: '200% auto',
@@ -347,25 +362,25 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
               {user?.name}!
             </p>
             <p style={{ fontSize: 18, color: '#d0e0d0', lineHeight: 1.7, marginBottom: 40, fontWeight: 500 }}>
-              Wish you a great year ahead!<br/> May your day be filled with joy, success, and lots of amazing celebrations! 🥂✨
+              Wish you a great year ahead!<br /> May your day be filled with joy, success, and lots of amazing celebrations! 🥂✨
             </p>
 
             <button onClick={() => setShowPopup(false)} style={{
-              background: 'linear-gradient(135deg, #76c733 0%, #4a8a1a 100%)', 
+              background: 'linear-gradient(135deg, #76c733 0%, #4a8a1a 100%)',
               color: '#0e1510', border: 'none',
               padding: '16px 40px', borderRadius: 100, fontSize: 18, fontWeight: 800,
               cursor: 'pointer', transition: 'all 0.3s ease',
               boxShadow: '0 10px 25px rgba(118, 199, 51, 0.3)',
               display: 'inline-block'
             }}
-            onMouseEnter={e => {
-              e.currentTarget.style.transform = 'translateY(-3px) scale(1.05)';
-              e.currentTarget.style.boxShadow = '0 15px 35px rgba(118, 199, 51, 0.5)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = 'translateY(0) scale(1)';
-              e.currentTarget.style.boxShadow = '0 10px 25px rgba(118, 199, 51, 0.3)';
-            }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-3px) scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 15px 35px rgba(118, 199, 51, 0.5)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                e.currentTarget.style.boxShadow = '0 10px 25px rgba(118, 199, 51, 0.3)';
+              }}
             >
               Start Celebrating! 🎊
             </button>
@@ -402,8 +417,12 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
 const Dashboard = () => {
   const { user } = useUser();
   const { leaves } = useLeaves();
-  const { employees } = useEmployee();
+  const { employees, refreshEmployees } = useEmployee();
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (refreshEmployees) refreshEmployees();
+  }, [refreshEmployees]);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [wishTarget, setWishTarget] = useState(null);

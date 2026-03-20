@@ -13,6 +13,7 @@ import Settings from './pages/Settings';
 import ManageLeaves from './pages/ManageLeaves';
 import Signup from './pages/Signup';
 import AboutCompany from './pages/AboutCompany';
+import BirthdayPopup from './components/BirthdayPopup';
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -85,6 +86,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Router>
+        <BirthdayPopup />
         </LeavesProvider>
       </EmployeeProvider>
     </UserContext.Provider>
