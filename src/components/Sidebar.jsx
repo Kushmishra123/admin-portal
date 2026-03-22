@@ -24,6 +24,7 @@ const Sidebar = () => {
   const employeeLinks = [
     { to: '/dashboard', icon: '📊', label: 'Dashboard' },
     { to: '/my-leaves', icon: '📅', label: 'My Leaves' },
+    { to: '/policy', icon: '📋', label: 'Policy' },
     { to: '/about', icon: '🏢', label: 'About Company' },
     { to: '/settings', icon: '⚙️', label: 'Settings' },
   ];

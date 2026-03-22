@@ -58,7 +58,8 @@ const LoginForm = ({ onLogin }) => {
           name: data.user.name,
           role: data.user.role,
           initials: data.user.initials,
-          id: data.user.employeeId
+          employeeId: data.user.employeeId,
+          policyStatus: data.user.policyStatus ?? false,
         });
       }
     } catch (err) {

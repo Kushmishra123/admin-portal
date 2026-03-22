@@ -14,6 +14,7 @@ import Settings from './pages/Settings';
 import ManageLeaves from './pages/ManageLeaves';
 import Signup from './pages/Signup';
 import AboutCompany from './pages/AboutCompany';
+import Policy from './pages/Policy';
 import BirthdayPopup from './components/BirthdayPopup';
 
 function App() {
@@ -80,6 +81,7 @@ function App() {
 
               {/* Admin-only Routes (non-superadmin logged-in users) */}
               <Route path="/my-leaves" element={user?.role === 'admin' ? <MyLeaves /> : <Navigate to="/" />} />
+              <Route path="/policy"    element={user?.role === 'admin' ? <Policy />   : <Navigate to="/" />} />
 
               {/* Public Signup Page */}
               <Route path="/signup" element={<Signup />} />

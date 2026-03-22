@@ -23,6 +23,7 @@ const server = http.createServer(app);
 const allowedOrigins = [
   'https://admin-portal-eg7oz07sb-kushmishra123s-projects.vercel.app',
   'https://admin-portal-navy-two.vercel.app',
+  'https://admin-portal-xzc3.onrender.com',
   'http://localhost:5173',
   'http://127.0.0.1:5173'
 ];
