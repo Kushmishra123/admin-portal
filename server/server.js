@@ -5,6 +5,10 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 // const nodemailer = require('nodemailer');
 const User = require('./models/User');
+const Message = require('./models/Message');
+const Notification = require('./models/Notification');
+
+const userSocketMap = {}; // Map: employeeId -> socket.id
 
 // Setup Nodemailer transporter
 // const transporter = nodemailer.createTransport({
@@ -31,7 +35,7 @@ const allowedOrigins = [
 const corsOptions = {
   origin: function (origin, callback) {
     // If no origin (e.g. server-to-server) or origin is in our allowed list, allow it
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -202,6 +206,40 @@ app.patch('/api/auth/policy-status/:employeeId', async (req, res) => {
   try {
     const user = await User.findOne({ employeeId: req.params.employeeId.toUpperCase() });
     if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    // Check if transitioning to true
+    if (!user.policyStatus && policyStatus === true && req.body.policyStatus) {
+      // Find all superadmins to notify
+      const superadmins = await User.find({ role: 'superadmin' });
+      const messageText = `This employee has read the policy. Name: ${user.name}, Email: ${user.email}`;
+      
+      for (const sa of superadmins) {
+        // Original chat message code
+        const newMessage = new Message({
+          senderId: user.employeeId,
+          receiverId: sa.employeeId,
+          text: messageText,
+        });
+        await newMessage.save();
+
+        // New system notification code
+        const newNotification = new Notification({
+          receiverId: sa.employeeId,
+          title: 'Policy Acknowledgment',
+          message: messageText,
+          type: 'policy'
+        });
+        await newNotification.save();
+
+        // Emit to the superadmin if they are online
+        const receiverSocketId = userSocketMap[sa.employeeId];
+        if (receiverSocketId) {
+          io.to(receiverSocketId).emit('receiveMessage', newMessage);
+          io.to(receiverSocketId).emit('newNotification', newNotification);
+        }
+      }
+    }
+
     user.policyStatus = policyStatus;
     await user.save();
     console.log(`✅ [POLICY] ${user.name} (${user.employeeId}) acknowledged policy: ${policyStatus}`);
@@ -844,11 +882,43 @@ app.patch('/api/leaves/:employeeLeaveId/request/:requestId/status', async (req, 
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+app.get('/api/notifications/:employeeId', async (req, res) => {
+  try {
+    const notifications = await Notification.find({ receiverId: req.params.employeeId.toUpperCase() })
+      .sort({ createdAt: -1 })
+      .limit(50);
+    res.status(200).json(notifications);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch notifications' });
+  }
+});
+
+app.patch('/api/notifications/:id/read', async (req, res) => {
+  try {
+    const notification = await Notification.findById(req.params.id);
+    if (!notification) return res.status(404).json({ error: 'Notification not found' });
+    notification.read = true;
+    await notification.save();
+    res.status(200).json({ message: 'Notification marked as read' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update notification' });
+  }
+});
+
+app.patch('/api/notifications/user/:employeeId/readAll', async (req, res) => {
+  try {
+    await Notification.updateMany({ receiverId: req.params.employeeId.toUpperCase(), read: false }, { read: true });
+    res.status(200).json({ message: 'All notifications marked as read' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to clear notifications' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // CHAT & WEBSOCKET  (Messages)
 // ═══════════════════════════════════════════════════════════════════════════════
-const Message = require('./models/Message');
-
-const userSocketMap = {}; // Map: employeeId -> socket.id
 
 io.on('connection', (socket) => {
   const employeeId = socket.handshake.query.employeeId;

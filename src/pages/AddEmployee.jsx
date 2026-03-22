@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 import { useEmployee } from '../context/EmployeeContext';
 import { useUser } from '../context/UserContext';
 import '../styles/dashboard.css';
+import LoaderButton from '../components/LoaderButton';
 
 const DEPARTMENTS = ['ADMIN (1 offs/wk)', 'Security', 'HR', 'Design', 'Quality', 'Sales', 'SOC', 'NOC', 'FMS', 'Operations', 'Marketing', 'Compliance', 'CXO', 'Directorship'];
 const SHIFTS = ['None', 'Morning Shift', 'Night Shift', 'General'];
@@ -254,15 +255,15 @@ const AddEmployee = () => {
               <h1 className="page-title">Add New Employee</h1>
               <p className="page-subtitle">Complete the form below to onboard a new team member</p>
             </div>
-            <button className="btn-secondary" onClick={() => navigate('/employees')}>
+            <LoaderButton className="btn-secondary" onClick={() => navigate('/employees')}>
               ← Back to Directory
-            </button>
+            </LoaderButton>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(320px, 350px)', gap: 24, alignItems: 'start' }}>
 
             {/* ── Left: Main Form ── */}
-            <form onSubmit={handleSubmit} noValidate>
+            <form  noValidate>
 
               {/* Personal Info */}
               <div className="form-card" style={{ marginBottom: 20 }}>
@@ -313,7 +314,7 @@ const AddEmployee = () => {
                     🔐 Login Credentials
                   </h3>
                   {user?.role === 'superadmin' && (
-                    <button
+                    <LoaderButton
                       type="button"
                       onClick={handleResetPassword}
                       disabled={resetLoading}
@@ -323,7 +324,7 @@ const AddEmployee = () => {
                       }}
                     >
                       {resetLoading ? '⏳ Resetting...' : '🔄 Reset Password'}
-                    </button>
+                    </LoaderButton>
                   )}
                 </div>
                 <p style={{ fontSize: 12, color: '#6b7b6b', marginBottom: 20 }}>
@@ -381,14 +382,14 @@ const AddEmployee = () => {
               )}
 
               <div className="form-actions" style={{ marginBottom: 40 }}>
-                <button
+                <LoaderButton onClick={handleSubmit}
                   type="submit"
                   className="btn-primary"
                   style={{ width: '100%', padding: '14px', opacity: submitLoading ? 0.7 : 1 }}
                   disabled={submitLoading}
                 >
                   {submitLoading ? '⏳ Saving to Database…' : '✅ Add Employee'}
-                </button>
+                </LoaderButton>
               </div>
             </form>
 
@@ -403,9 +404,9 @@ const AddEmployee = () => {
                 <Field label="Department Name" field="deptName" form={deptForm} errors={{}} handleChange={handleDeptChange} />
                 <Select label="Work Type" field="workType" options={WORK_TYPES} form={deptForm} errors={{}} handleChange={handleDeptChange} />
                 <Select label="Offs Per Week" field="offs" options={OFFS} form={deptForm} errors={{}} handleChange={handleDeptChange} />
-                <button type="button" className="btn-primary" style={{ width: '100%', marginTop: 8 }}>
+                <LoaderButton type="button" className="btn-primary" style={{ width: '100%', marginTop: 8 }}>
                   Add Department
-                </button>
+                </LoaderButton>
               </div>
 
               {/* Add Shift */}
@@ -419,9 +420,9 @@ const AddEmployee = () => {
                 <Field label="End Time" field="end" type="time" form={shiftForm} errors={{}} handleChange={handleShiftChange} />
                 <Select label="Duration (Hours)" field="duration" options={DURATIONS} form={shiftForm} errors={{}} handleChange={handleShiftChange} />
                 <Select label="Overtime Hours" field="overtime" options={OVERTIME} form={shiftForm} errors={{}} handleChange={handleShiftChange} />
-                <button type="button" className="btn-secondary" style={{ width: '100%', marginTop: 8, borderColor: '#0ea5e9', color: '#0ea5e9', background: 'rgba(14,165,233,0.1)' }}>
+                <LoaderButton type="button" className="btn-secondary" style={{ width: '100%', marginTop: 8, borderColor: '#0ea5e9', color: '#0ea5e9', background: 'rgba(14,165,233,0.1)' }}>
                   Add Shift
-                </button>
+                </LoaderButton>
               </div>
 
               {/* Submit Leave Request */}
@@ -434,9 +435,9 @@ const AddEmployee = () => {
                 <Field label="From Date" field="fromDate" type="date" form={leaveForm} errors={{}} handleChange={handleLeaveChange} />
                 <Field label="To Date" field="toDate" type="date" form={leaveForm} errors={{}} handleChange={handleLeaveChange} />
                 <Textarea label="Reason" field="reason" form={leaveForm} errors={{}} handleChange={handleLeaveChange} />
-                <button type="button" className="btn-primary" style={{ width: '100%', marginTop: 8, background: '#f59e0b', color: '#000', border: 'none' }}>
+                <LoaderButton type="button" className="btn-primary" style={{ width: '100%', marginTop: 8, background: '#f59e0b', color: '#000', border: 'none' }}>
                   Submit Request
-                </button>
+                </LoaderButton>
               </div>
 
             </div>

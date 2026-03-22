@@ -63,7 +63,7 @@ function App() {
                   !user ? (
                     <Login onLogin={handleLogin} />
                   ) : (
-                    <Navigate to={user.role === 'superadmin' ? '/employees' : '/dashboard'} />
+                    <Navigate to="/dashboard" />
                   )
                 }
               />

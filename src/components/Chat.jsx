@@ -9,6 +9,7 @@ const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wis
   const [chatUsers, setChatUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [inputMessage, setInputMessage] = useState('');
+  const [drafts, setDrafts] = useState({});
   const messagesEndRef = useRef(null);
 
   // When a wishTarget is passed in, auto-select that user
@@ -18,13 +19,20 @@ const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wis
     }
   }, [isOpen, wishTarget]);
 
-  // When a wishMessage is received, pre-fill it in the input area
+  // When a wishMessage is received, pre-fill it in the input area for the specific target
   useEffect(() => {
-    if (isOpen && wishMessage) {
-      setInputMessage(wishMessage);
+    if (isOpen && wishMessage && wishTarget) {
+      setDrafts(prev => ({ ...prev, [wishTarget.id]: wishMessage }));
       if (setWishMessage) setWishMessage('');
     }
-  }, [isOpen, wishMessage, setWishMessage]);
+  }, [isOpen, wishMessage, wishTarget, setWishMessage]);
+
+  // When selected user changes, restore their draft message
+  useEffect(() => {
+    if (selectedUser) {
+      setInputMessage(drafts[selectedUser.id] || '');
+    }
+  }, [selectedUser, drafts]);
 
   // Fetch all chat users when the chat opens
   useEffect(() => {
@@ -86,6 +94,7 @@ const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wis
 
       socket.emit('sendMessage', msgData);
       setInputMessage('');
+      setDrafts(prev => ({ ...prev, [selectedUser.id]: '' }));
     }
   };
 
@@ -257,7 +266,12 @@ const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wis
                 <input
                   type="text"
                   value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
+                  onChange={(e) => {
+                    setInputMessage(e.target.value);
+                    if (selectedUser) {
+                      setDrafts(prev => ({ ...prev, [selectedUser.id]: e.target.value }));
+                    }
+                  }}
                   placeholder="Type your message..."
                   className="chat-input"
                 />

@@ -4,6 +4,7 @@ import { API_URL } from '../config';
 import logo from '../assets/qb.png';
 import '../styles/login.css';
 import '../styles/signup.css';
+import LoaderButton from '../components/LoaderButton';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -202,9 +203,9 @@ const Signup = () => {
               </div>
             )}
 
-            <button type="submit" className="sign-in-btn" disabled={loading}>
+            <LoaderButton type="submit" className="sign-in-btn" disabled={loading}>
               {loading ? '⏳ Creating Account…' : 'Create Account →'}
-            </button>
+            </LoaderButton>
           </form>
 
           <div className="signup-login-link">

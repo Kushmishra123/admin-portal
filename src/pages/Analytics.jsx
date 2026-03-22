@@ -3,6 +3,7 @@ import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import { useEmployee } from '../context/EmployeeContext';
 import '../styles/dashboard.css';
+import LoaderButton from '../components/LoaderButton';
 
 const Analytics = () => {
   const { employees } = useEmployee();
@@ -57,7 +58,7 @@ const Analytics = () => {
               <h1 className="page-title">Analytics</h1>
               <p className="page-subtitle">Workforce overview and department breakdown</p>
             </div>
-            <button className="btn-secondary">⬇ Export Report</button>
+            <LoaderButton className="btn-secondary">⬇ Export Report</LoaderButton>
           </div>
 
           {/* KPI Cards */}

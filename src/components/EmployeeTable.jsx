@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useEmployee } from '../context/EmployeeContext';
 import { useUser } from '../context/UserContext';
+import LoaderButton from './LoaderButton';
 
 const EmployeeTable = ({ onEdit, onViewDetails, onResetPassword }) => {
   const { employees, deleteEmployee } = useEmployee();
@@ -69,14 +70,14 @@ const EmployeeTable = ({ onEdit, onViewDetails, onResetPassword }) => {
                 </td>
                 <td>
                   {emp.document ? (
-                    <button style={{
+                    <LoaderButton style={{
                       display: 'inline-flex', alignItems: 'center', gap: 6,
                       background: 'rgba(16, 185, 129, 0.1)', color: '#10b981',
                       border: '1px solid rgba(16, 185, 129, 0.3)', padding: '4px 8px',
                       borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: 'pointer'
                     }}>
                       📄 View
-                    </button>
+                    </LoaderButton>
                   ) : (
                     <span style={{ color: '#6b7b6b' }}>-</span>
                   )}
@@ -105,7 +106,7 @@ const EmployeeTable = ({ onEdit, onViewDetails, onResetPassword }) => {
                 <td>
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                     {/* Edit */}
-                    <button
+                    <LoaderButton
                       style={{
                         background: 'transparent',
                         border: '1px solid rgba(249, 115, 22, 0.4)',
@@ -120,12 +121,12 @@ const EmployeeTable = ({ onEdit, onViewDetails, onResetPassword }) => {
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                       </svg>
-                    </button>
+                    </LoaderButton>
 
                     {/* Reset Password & Delete — Only for Super Admins */}
                     {user?.role === 'superadmin' && (
                       <>
-                        <button
+                        <LoaderButton
                           style={{
                             background: 'transparent',
                             border: '1px solid rgba(251, 191, 36, 0.45)',
@@ -141,10 +142,10 @@ const EmployeeTable = ({ onEdit, onViewDetails, onResetPassword }) => {
                             <path d="M21 2l-9.6 9.6"></path>
                             <path d="M15.5 7.5l3 3L22 7l-3-3"></path>
                           </svg>
-                        </button>
+                        </LoaderButton>
 
                         {/* Delete */}
-                        <button
+                        <LoaderButton
                           style={{
                             background: 'transparent',
                             border: '1px solid rgba(239, 68, 68, 0.4)',
@@ -161,7 +162,7 @@ const EmployeeTable = ({ onEdit, onViewDetails, onResetPassword }) => {
                             <line x1="10" y1="11" x2="10" y2="17"></line>
                             <line x1="14" y1="11" x2="14" y2="17"></line>
                           </svg>
-                        </button>
+                        </LoaderButton>
                       </>
                     )}
                   </div>

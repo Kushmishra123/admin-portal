@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Confetti from 'react-confetti';
 import { useUser } from '../context/UserContext';
 import { useEmployee } from '../context/EmployeeContext';
+import LoaderButton from './LoaderButton';
 
 const BirthdayPopup = () => {
   const { user } = useUser();
@@ -94,7 +95,7 @@ const BirthdayPopup = () => {
         boxShadow: '0 0 80px rgba(118, 199, 51, 0.25), inset 0 0 40px rgba(118, 199, 51, 0.05)',
         animation: 'themeModalPopIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
       }}>
-        <button onClick={() => setShowPopup(false)} style={{
+        <LoaderButton onClick={() => setShowPopup(false)} style={{
           position: 'absolute', top: 20, right: 20,
           background: 'rgba(255,255,255,0.05)', border: 'none',
           borderRadius: '50%', color: '#d0e0d0', width: 40, height: 40,
@@ -105,7 +106,7 @@ const BirthdayPopup = () => {
         onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.8)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.1)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#d0e0d0'; e.currentTarget.style.transform = 'scale(1)'; }}
         title="Close"
-        >✕</button>
+        >✕</LoaderButton>
 
         <div style={{ fontSize: 90, marginBottom: 20, animation: 'themeCakeBounce 2s infinite', willChange: 'transform' }}>🎂</div>
         <h2 style={{ 
@@ -124,7 +125,7 @@ const BirthdayPopup = () => {
           Wish you a great year ahead!<br/> May your day be filled with joy, success, and lots of amazing celebrations! 🥂✨
         </p>
 
-        <button onClick={() => setShowPopup(false)} style={{
+        <LoaderButton onClick={() => setShowPopup(false)} style={{
           background: 'linear-gradient(135deg, #76c733 0%, #4a8a1a 100%)', 
           color: '#0e1510', border: 'none',
           padding: '16px 40px', borderRadius: 100, fontSize: 18, fontWeight: 800,
@@ -142,7 +143,7 @@ const BirthdayPopup = () => {
         }}
         >
           Start Celebrating! 🎊
-        </button>
+        </LoaderButton>
       </div>
       <style>{`
         @keyframes themeModalPopIn {

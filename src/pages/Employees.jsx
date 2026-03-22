@@ -7,6 +7,7 @@ import { useEmployee } from '../context/EmployeeContext';
 import { useUser } from '../context/UserContext';
 import { API_URL } from '../config';
 import '../styles/dashboard.css';
+import LoaderButton from '../components/LoaderButton';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Password strength helper
@@ -112,10 +113,10 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
         </div>
         <p style={{ margin: 0, fontSize: 12, color: '#6b7b6b' }}>{subtitle}</p>
       </div>
-      <button
+      <LoaderButton
         onClick={onClose}
         style={{ background: 'transparent', border: 'none', color: '#6b7b6b', cursor: 'pointer', fontSize: 20, lineHeight: 1, padding: '0 4px' }}
-      >×</button>
+      >×</LoaderButton>
     </div>
   );
 
@@ -171,11 +172,11 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
               onFocus={e => e.target.style.borderColor = 'rgba(251,191,36,0.5)'}
               onBlur={e => e.target.style.borderColor = '#1a2a1a'}
             />
-            <button
+            <LoaderButton
               type="button"
               onClick={() => setShowNew(v => !v)}
               style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6b7b6b', cursor: 'pointer', fontSize: 15 }}
-            >{showNew ? '🙈' : '👁'}</button>
+            >{showNew ? '🙈' : '👁'}</LoaderButton>
           </div>
           {/* Strength bar */}
           {newPassword && strength && (
@@ -209,11 +210,11 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
               onFocus={e => e.target.style.borderColor = 'rgba(251,191,36,0.5)'}
               onBlur={e => e.target.style.borderColor = '#1a2a1a'}
             />
-            <button
+            <LoaderButton
               type="button"
               onClick={() => setShowConfirm(v => !v)}
               style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6b7b6b', cursor: 'pointer', fontSize: 15 }}
-            >{showConfirm ? '🙈' : '👁'}</button>
+            >{showConfirm ? '🙈' : '👁'}</LoaderButton>
           </div>
           {confirmPwd && newPassword && (
             <span style={{ fontSize: 11, color: confirmPwd === newPassword ? '#4ade80' : '#f87171', marginTop: 4, display: 'block' }}>
@@ -239,18 +240,18 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
 
         {/* Buttons */}
         <div style={{ display: 'flex', gap: 10 }}>
-          <button
+          <LoaderButton
             onClick={onClose}
             style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid #222', borderRadius: 8, color: '#aaa', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
           >
             Cancel
-          </button>
-          <button
+          </LoaderButton>
+          <LoaderButton
             onClick={handleProceed}
             style={{ flex: 2, padding: '10px', background: '#fbbf24', border: 'none', borderRadius: 8, color: '#000', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
           >
             🔑 Continue to Confirm
-          </button>
+          </LoaderButton>
         </div>
       </div>
     </Overlay>
@@ -301,19 +302,19 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
         )}
 
         <div style={{ display: 'flex', gap: 10 }}>
-          <button
+          <LoaderButton
             onClick={() => setStage('form')}
             style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid #222', borderRadius: 8, color: '#aaa', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
           >
             ← Go Back
-          </button>
-          <button
+          </LoaderButton>
+          <LoaderButton
             onClick={handleConfirm}
             disabled={loading}
             style={{ flex: 2, padding: '10px', background: loading ? '#555' : '#ef4444', border: 'none', borderRadius: 8, color: '#fff', fontSize: 14, fontWeight: 700, cursor: loading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
           >
             {loading ? '⏳ Resetting…' : '✅ Yes, Reset Password'}
-          </button>
+          </LoaderButton>
         </div>
       </div>
     </Overlay>
@@ -365,12 +366,12 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
           </div>
         </div>
 
-        <button
+        <LoaderButton
           onClick={onClose}
           style={{ width: '100%', padding: '11px', background: '#4ade80', border: 'none', borderRadius: 8, color: '#000', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
         >
           Done
-        </button>
+        </LoaderButton>
       </div>
     </Overlay>
   );
@@ -404,10 +405,10 @@ const EmployeeDetailModal = ({ emp, onClose }) => {
           <div style={{ color: '#60a5fa', fontSize: 14, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
             📊 {emp.id} - {emp.name} (Year {currentYear})
           </div>
-          <button onClick={onClose} style={{
+          <LoaderButton onClick={onClose} style={{
             background: 'transparent', border: 'none', color: '#60a5fa',
             cursor: 'pointer', fontSize: 16, fontWeight: 'bold'
-          }}>✕</button>
+          }}>✕</LoaderButton>
         </div>
         {/* Body */}
         <div style={{ padding: '16px', display: 'flex', flexWrap: 'wrap', gap: '16px', background: '#0e1510' }}>
@@ -486,7 +487,7 @@ const EditEmployeeModal = ({ emp, onClose, onSave }) => {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #1a2a1a', background: '#0e1510' }}>
           <h2 style={{ fontSize: 18, fontWeight: 600, color: '#e0f0e0', margin: 0 }}>Edit Employee — {emp.name}</h2>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#6b7b6b', cursor: 'pointer', fontSize: 24, lineHeight: 1 }}>×</button>
+          <LoaderButton onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#6b7b6b', cursor: 'pointer', fontSize: 24, lineHeight: 1 }}>×</LoaderButton>
         </div>
 
         {/* Body */}
@@ -563,12 +564,12 @@ const EditEmployeeModal = ({ emp, onClose, onSave }) => {
 
         {/* Footer */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, padding: '16px 24px', borderTop: '1px solid #1a2a1a', background: '#0e1510' }}>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', padding: '8px 16px', borderRadius: 6, fontWeight: 500, cursor: 'pointer' }}>
+          <LoaderButton onClick={onClose} style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', padding: '8px 16px', borderRadius: 6, fontWeight: 500, cursor: 'pointer' }}>
             Close
-          </button>
-          <button onClick={() => { onSave(form); onClose(); }} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 6, fontWeight: 500, cursor: 'pointer' }}>
+          </LoaderButton>
+          <LoaderButton onClick={() => { onSave(form); onClose(); }} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 6, fontWeight: 500, cursor: 'pointer' }}>
             Save Changes
-          </button>
+          </LoaderButton>
         </div>
       </div>
     </div>
@@ -630,9 +631,9 @@ const Employees = () => {
               <h1 className="page-title">Admin Control</h1>
               <p className="page-subtitle">Manage and track all organisation employees</p>
             </div>
-            <button className="btn-primary" onClick={() => navigate('/add-employee')}>
+            <LoaderButton className="btn-primary" onClick={() => navigate('/add-employee')}>
               ➕ Add Employee
-            </button>
+            </LoaderButton>
           </div>
 
           <EmployeeTable

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { API_URL } from '../config';
+import LoaderButton from './LoaderButton';
 
 const LoginForm = ({ onLogin }) => {
   const [isResetMode, setIsResetMode] = useState(false);
@@ -139,7 +140,7 @@ const LoginForm = ({ onLogin }) => {
           <h2>Reset Password</h2>
           <p>Enter your current password and choose a new one</p>
 
-          <form onSubmit={handleResetSubmit}>
+          <form >
             <div className="input-group">
               <label>Employee Code</label>
               <input
@@ -204,13 +205,13 @@ const LoginForm = ({ onLogin }) => {
               </div>
             )}
 
-            <button type="submit" className="sign-in-btn" disabled={loading}>
+            <LoaderButton onClick={handleResetSubmit} type="submit" className="sign-in-btn" disabled={loading}>
               {loading ? '⏳ Resetting…' : '🔒 Reset Password'}
-            </button>
+            </LoaderButton>
 
-            <button type="button" onClick={toggleMode} style={{ background: 'transparent', border: 'none', color: '#6b7b6b', cursor: 'pointer', marginTop: '16px', fontSize: '14px', width: '100%' }}>
+            <LoaderButton type="button" onClick={toggleMode} style={{ background: 'transparent', border: 'none', color: '#6b7b6b', cursor: 'pointer', marginTop: '16px', fontSize: '14px', width: '100%' }}>
               ← Back to Login
-            </button>
+            </LoaderButton>
           </form>
         </>
       ) : (
@@ -218,7 +219,7 @@ const LoginForm = ({ onLogin }) => {
           <h2>Welcome back</h2>
           <p>Sign in to your Quisitive Business account</p>
 
-          <form onSubmit={handleLoginSubmit}>
+          <form >
             <div className="input-group">
               <label>Employee Code</label>
               <input
@@ -245,9 +246,9 @@ const LoginForm = ({ onLogin }) => {
 
             {error && <div className="error-msg"><span>⚠️</span> {error}</div>}
 
-            <button type="submit" className="sign-in-btn" disabled={loading}>
+            <LoaderButton onClick={handleLoginSubmit} type="submit" className="sign-in-btn" disabled={loading}>
               {loading ? '⏳ Signing in…' : 'Sign In →'}
-            </button>
+            </LoaderButton>
           </form>
         </>
       )}

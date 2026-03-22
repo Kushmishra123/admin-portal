@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import { useLeaves } from '../context/LeavesContext';
 import { useUser } from '../context/UserContext';
 import '../styles/dashboard.css';
+import LoaderButton from '../components/LoaderButton';
 
 const ManageLeaves = () => {
   const { user } = useUser();
@@ -67,15 +68,15 @@ const ManageLeaves = () => {
               </h1>
               <p className="page-subtitle">Approve or reject pending leave requests from employees</p>
             </div>
-            <button className="btn-secondary" onClick={refreshLeaves} style={{ opacity: loading ? 0.6 : 1 }}>
+            <LoaderButton className="btn-secondary" onClick={refreshLeaves} style={{ opacity: loading ? 0.6 : 1 }}>
               🔄 Refresh
-            </button>
+            </LoaderButton>
           </div>
 
           {/* Filter tabs */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
             {['All', 'Pending', 'Approved', 'Rejected'].map(f => (
-              <button
+              <LoaderButton
                 key={f}
                 onClick={() => setFilter(f)}
                 style={{
@@ -87,7 +88,7 @@ const ManageLeaves = () => {
                 }}
               >
                 {f} {f === 'All' ? `(${leaves.length})` : `(${leaves.filter(l => l.status === f).length})`}
-              </button>
+              </LoaderButton>
             ))}
           </div>
 
@@ -136,7 +137,7 @@ const ManageLeaves = () => {
                     <td>
                       {l.status === 'Pending' ? (
                         <div style={{ display: 'flex', gap: 6 }}>
-                          <button
+                          <LoaderButton
                             onClick={() => handleAction(l, 'Approved')}
                             disabled={processing === l._id}
                             style={{
@@ -147,8 +148,8 @@ const ManageLeaves = () => {
                             }}
                           >
                             {processing === l._id ? '…' : '✓ Approve'}
-                          </button>
-                          <button
+                          </LoaderButton>
+                          <LoaderButton
                             onClick={() => handleAction(l, 'Rejected')}
                             disabled={processing === l._id}
                             style={{
@@ -159,7 +160,7 @@ const ManageLeaves = () => {
                             }}
                           >
                             ✕ Reject
-                          </button>
+                          </LoaderButton>
                         </div>
                       ) : (
                         <div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { API_URL } from '../config';
+import LoaderButton from './LoaderButton';
 
 const SignupForm = ({ onSignupSuccess }) => {
   const [employeeCode, setEmployeeCode] = useState('');
@@ -51,7 +52,7 @@ const SignupForm = ({ onSignupSuccess }) => {
       <h2>Create an Account</h2>
       <p>Sign up for your new Quisitive Business account</p>
 
-      <form onSubmit={handleSubmit}>
+      <form >
         <div className="input-group">
           <label>Employee Code</label>
           <input
@@ -101,9 +102,9 @@ const SignupForm = ({ onSignupSuccess }) => {
           </div>
         )}
 
-        <button type="submit" className="sign-in-btn" disabled={loading}>
+        <LoaderButton onClick={handleSubmit} type="submit" className="sign-in-btn" disabled={loading}>
           {loading ? '⏳ Creating Account…' : 'Sign Up →'}
-        </button>
+        </LoaderButton>
       </form>
     </div>
   );

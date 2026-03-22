@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import { useLeaves } from '../context/LeavesContext';
 import { useUser } from '../context/UserContext';
 import '../styles/dashboard.css';
+import LoaderButton from '../components/LoaderButton';
 
 const MyLeaves = () => {
   const { user } = useUser();
@@ -63,15 +64,15 @@ const MyLeaves = () => {
               <h1 className="page-title">My Leaves</h1>
               <p className="page-subtitle">View your leave history and apply for new leaves</p>
             </div>
-            <button className="btn-primary" onClick={() => setShowForm(s => !s)}>
+            <LoaderButton className="btn-primary" onClick={() => setShowForm(s => !s)}>
               {showForm ? '✕ Cancel' : '➕ Apply for Leave'}
-            </button>
+            </LoaderButton>
           </div>
 
           {/* ── Live Leave Balance ── */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
              <h2 style={{ fontSize: 16, fontWeight: 700, color: '#fff', margin: 0 }}>Leave Balance</h2>
-             <button onClick={() => window.location.reload()} style={{ background: 'transparent', border: 'none', color: '#76c733', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>🔄 Refresh Balance</button>
+             <LoaderButton onClick={() => window.location.reload()} style={{ background: 'transparent', border: 'none', color: '#76c733', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>🔄 Refresh Balance</LoaderButton>
           </div>
 
           <div className="leave-balance-grid" style={{ marginBottom: 32 }}>
@@ -120,7 +121,7 @@ const MyLeaves = () => {
           {showForm && (
             <div className="form-card" style={{ marginBottom: 24 }}>
               <h3 style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 20 }}>📝 Apply for Leave</h3>
-              <form onSubmit={handleApply}>
+              <form >
                 <div className="form-grid">
                   <div className="form-group">
                     <label className="form-label">Leave Type</label>
@@ -146,9 +147,9 @@ const MyLeaves = () => {
                   </div>
                 </div>
                 <div className="form-actions" style={{ marginTop: 0 }}>
-                  <button type="submit" className="btn-primary" disabled={submitting}>
+                  <LoaderButton onClick={handleApply} type="submit" className="btn-primary" disabled={submitting}>
                     {submitting ? '⏳ Submitting…' : 'Submit Request'}
-                  </button>
+                  </LoaderButton>
                 </div>
               </form>
             </div>

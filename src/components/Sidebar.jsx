@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import logo from '../assets/qb.png';
+import LoaderButton from './LoaderButton';
 
 const Sidebar = () => {
   const { user, handleLogout, isSidebarCollapsed, setIsSidebarCollapsed } = useUser();
@@ -34,13 +35,13 @@ const Sidebar = () => {
   return (
     <div className={`left-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
       {/* Toggle Button */}
-      <button
+      <LoaderButton
         className="sidebar-toggle-btn"
         onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
       >
         {isSidebarCollapsed ? '»' : '«'}
-      </button>
+      </LoaderButton>
 
       {/* Brand */}
       <div className="sidebar-brand">
@@ -81,10 +82,10 @@ const Sidebar = () => {
             </p>
           </div>
         </div>
-        <button className="signout-btn" onClick={onLogout}>
+        <LoaderButton className="signout-btn" onClick={onLogout}>
           <span className="signout-icon">⏻</span>
           <span className="signout-text">Sign Out</span>
-        </button>
+        </LoaderButton>
       </div>
     </div>
   );

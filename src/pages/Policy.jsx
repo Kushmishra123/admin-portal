@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import { useUser } from '../context/UserContext';
 import { API_BASE_URL } from '../config';
 import '../styles/dashboard.css';
+import LoaderButton from '../components/LoaderButton';
 
 const API = API_BASE_URL;
 
@@ -328,13 +329,13 @@ const Policy = () => {
                   ✅ Policy Already Acknowledged
                 </span>
               ) : (
-                <button
+                <LoaderButton
                   onClick={handleSave}
                   disabled={saving || !checked}
                   style={{ padding: '10px 26px', borderRadius: '8px', border: 'none', background: !checked || saving ? 'rgba(118, 199, 51, 0.25)' : 'linear-gradient(135deg, #76c733, #5aaa1a)', color: !checked || saving ? '#5a7a5a' : '#0a1a0a', fontWeight: 700, fontSize: '14px', cursor: !checked || saving ? 'not-allowed' : 'pointer', transition: 'all 0.2s ease' }}
                 >
                   {saving ? 'Saving...' : 'Save Acknowledgement'}
-                </button>
+                </LoaderButton>
               )}
               {saved && (
                 <span style={{ color: '#76c733', fontSize: '13px', fontWeight: 600 }}>✓ Saved successfully!</span>

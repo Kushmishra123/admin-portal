@@ -10,6 +10,7 @@ import { io } from 'socket.io-client';
 import { API_BASE_URL } from '../config';
 import Confetti from 'react-confetti';
 import '../styles/dashboard.css';
+import LoaderButton from '../components/LoaderButton';
 
 const CalendarModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
@@ -42,19 +43,19 @@ const CalendarModal = ({ isOpen, onClose }) => {
         background: '#0e1510', border: '1px solid #1a2a1a',
         borderRadius: 24, padding: 36, width: 400, position: 'relative'
       }}>
-        <button onClick={onClose} style={{
+        <LoaderButton onClick={onClose} style={{
           position: 'absolute', top: 16, right: 16,
           background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
           borderRadius: 8, color: '#f87171', width: 32, height: 32,
           cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>✕</button>
+        }}>✕</LoaderButton>
 
         <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: 0, marginBottom: 24 }}>Calendar</h2>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <button onClick={prevMonth} style={{ background: 'none', border: 'none', color: '#76c733', cursor: 'pointer', fontSize: 18, fontWeight: 'bold' }}>&lt;</button>
+          <LoaderButton onClick={prevMonth} style={{ background: 'none', border: 'none', color: '#76c733', cursor: 'pointer', fontSize: 18, fontWeight: 'bold' }}>&lt;</LoaderButton>
           <div style={{ fontWeight: 600, color: '#fff', fontSize: 18 }}>{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</div>
-          <button onClick={nextMonth} style={{ background: 'none', border: 'none', color: '#76c733', cursor: 'pointer', fontSize: 18, fontWeight: 'bold' }}>&gt;</button>
+          <LoaderButton onClick={nextMonth} style={{ background: 'none', border: 'none', color: '#76c733', cursor: 'pointer', fontSize: 18, fontWeight: 'bold' }}>&gt;</LoaderButton>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, textAlign: 'center', color: '#6b7b6b', fontSize: 13, marginBottom: 16, fontWeight: 600 }}>
@@ -246,17 +247,18 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
               </div>
             </div>
             {((user?.employeeId || user?.id) !== nextBirthday.id && (user?.employeeId || user?.id) !== nextBirthday._id) && (
-              <button
-                onClick={() => onSendWish(nextBirthday)}
+              <LoaderButton
+                onClick={() => nextBirthday.isToday && onSendWish(nextBirthday)}
+                disabled={!nextBirthday.isToday}
                 style={{
                   marginTop: 16,
-                  background: 'rgba(118,199,51,0.12)',
-                  border: '1px solid rgba(118,199,51,0.3)',
+                  background: nextBirthday.isToday ? 'rgba(118,199,51,0.12)' : 'rgba(255,255,255,0.05)',
+                  border: nextBirthday.isToday ? '1px solid rgba(118,199,51,0.3)' : '1px solid rgba(255,255,255,0.1)',
                   borderRadius: 12,
                   padding: '10px 20px',
-                  color: '#76c733',
+                  color: nextBirthday.isToday ? '#76c733' : '#6b7b6b',
                   fontWeight: 700,
-                  cursor: 'pointer',
+                  cursor: nextBirthday.isToday ? 'pointer' : 'not-allowed',
                   fontSize: 14,
                   transition: 'all 0.2s',
                   display: 'inline-flex',
@@ -265,14 +267,14 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
                   fontFamily: 'inherit'
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.background = 'rgba(118,199,51,0.2)';
+                  if (nextBirthday.isToday) e.currentTarget.style.background = 'rgba(118,199,51,0.2)';
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.background = 'rgba(118,199,51,0.12)';
+                  if (nextBirthday.isToday) e.currentTarget.style.background = 'rgba(118,199,51,0.12)';
                 }}
               >
-                🎉 Send a Wish
-              </button>
+                🎉 {nextBirthday.isToday ? "Send a Wish" : "Wish on Birthday"}
+              </LoaderButton>
             )}
           </>
         ) : (
@@ -335,7 +337,7 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
             boxShadow: '0 0 80px rgba(118, 199, 51, 0.25), inset 0 0 40px rgba(118, 199, 51, 0.05)',
             animation: 'themeModalPopIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
           }}>
-            <button onClick={() => setShowPopup(false)} style={{
+            <LoaderButton onClick={() => setShowPopup(false)} style={{
               position: 'absolute', top: 20, right: 20,
               background: 'rgba(255,255,255,0.05)', border: 'none',
               borderRadius: '50%', color: '#d0e0d0', width: 40, height: 40,
@@ -346,7 +348,7 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.8)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.1)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#d0e0d0'; e.currentTarget.style.transform = 'scale(1)'; }}
               title="Close"
-            >✕</button>
+            >✕</LoaderButton>
 
             <div style={{ fontSize: 90, marginBottom: 20, animation: 'themeCakeBounce 2s infinite', willChange: 'transform' }}>🎂</div>
             <h2 style={{
@@ -365,7 +367,7 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
               Wish you a great year ahead!<br /> May your day be filled with joy, success, and lots of amazing celebrations! 🥂✨
             </p>
 
-            <button onClick={() => setShowPopup(false)} style={{
+            <LoaderButton onClick={() => setShowPopup(false)} style={{
               background: 'linear-gradient(135deg, #76c733 0%, #4a8a1a 100%)',
               color: '#0e1510', border: 'none',
               padding: '16px 40px', borderRadius: 100, fontSize: 18, fontWeight: 800,
@@ -383,7 +385,7 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
               }}
             >
               Start Celebrating! 🎊
-            </button>
+            </LoaderButton>
           </div>
           <style>{`
             @keyframes themeModalPopIn {
@@ -558,7 +560,7 @@ const Dashboard = () => {
               </p>
             </div>
 
-            <button className="view-calendar-btn" onClick={() => setShowCalendar(true)}>📅 View Calendar</button>
+            <LoaderButton className="view-calendar-btn" onClick={() => setShowCalendar(true)}>📅 View Calendar</LoaderButton>
           </div>
 
           {/* Stats Grid */}
@@ -615,7 +617,7 @@ const Dashboard = () => {
               <h3 className="card-heading">What would you like to do?</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {actions.map(({ icon, label, path }) => (
-                  <button
+                  <LoaderButton
                     key={path}
                     onClick={() => navigate(path)}
                     style={{
@@ -642,7 +644,7 @@ const Dashboard = () => {
                     <span style={{ fontSize: 18 }}>{icon}</span>
                     {label}
                     <span style={{ marginLeft: 'auto', color: '#4a5a4a' }}>→</span>
-                  </button>
+                  </LoaderButton>
                 ))}
               </div>
             </div>
@@ -659,7 +661,7 @@ const Dashboard = () => {
           zIndex: 90,
           width: 64, height: 64,
         }}>
-          <button
+          <LoaderButton
             onClick={() => setShowChat(true)}
             style={{
               width: '100%', height: '100%', borderRadius: '50%',
@@ -674,7 +676,7 @@ const Dashboard = () => {
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M21 11.5C21 16.1944 16.9706 20 12 20C10.5901 20 9.25595 19.6888 8.08226 19.1352C7.65215 18.9324 7.15197 18.9137 6.70277 19.0886L3 20.5L4.41142 16.7972C4.58628 16.348 4.56762 15.8479 4.36476 15.4177C3.81116 14.244 3.5 12.9099 3.5 11.5C3.5 6.80558 7.52944 3 12.5 3C17.4706 3 21 6.80558 21 11.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-          </button>
+          </LoaderButton>
 
           {/* Notification Badge — outside the button so border-radius doesn't clip it */}
           {unreadCount > 0 && !showChat && (

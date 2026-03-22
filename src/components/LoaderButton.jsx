@@ -19,6 +19,7 @@ const LoaderButton = ({
   children,
   onClick,
   disabled = false,
+  loading = false,
   className = '',
   style = {},
   type = 'button',
@@ -26,25 +27,42 @@ const LoaderButton = ({
   showSpinner = true,
   ...rest
 }) => {
-  const { isLoading, withLoader } = useLoader();
+  const { isLoading, setIsLoading } = useLoader();
   const [localLoading, setLocalLoading] = React.useState(false);
 
-  const isActive = localLoading || isLoading;
-  const isDisabled = disabled || isActive;
+  const effectiveLoading = localLoading || loading;
+  const isDisabled = disabled || isLoading || effectiveLoading;
 
   const handleClick = async (e) => {
+    if (type === 'submit' && e.currentTarget.form) {
+      // By default prevent the native submission because we are attaching custom logic via onClick.
+      // E.g. our node script mapped form onSubmit to the submit button's onClick.
+      e.preventDefault();
+      
+      // Native validation check (shows standard HTML popup warnings for "required" and other things!)
+      if (!e.currentTarget.form.reportValidity()) {
+        return;
+      }
+    }
+
     if (!onClick || isDisabled) return;
 
-    const result = onClick(e);
-
-    // Only wrap in loader if onClick returns a Promise (i.e. it's async)
-    if (result && typeof result.then === 'function') {
-      setLocalLoading(true);
-      try {
-        await result;
-      } finally {
-        setLocalLoading(false);
+    try {
+      const result = onClick(e);
+      if (result && typeof result.then === 'function') {
+        setLocalLoading(true);
+        setIsLoading?.(true);
+        try {
+          await result;
+        } finally {
+          setLocalLoading(false);
+          setIsLoading?.(false);
+        }
       }
+    } catch (err) {
+      console.error(err);
+      setLocalLoading(false);
+      setIsLoading?.(false);
     }
   };
 
@@ -56,14 +74,13 @@ const LoaderButton = ({
         ...style,
         opacity: isDisabled ? 0.65 : 1,
         cursor: isDisabled ? 'not-allowed' : 'pointer',
-        position: 'relative',
-        ...(isActive ? { pointerEvents: 'none' } : {}),
+        ...(effectiveLoading ? { pointerEvents: 'none' } : {}),
       }}
       disabled={isDisabled}
       onClick={handleClick}
       {...rest}
     >
-      {isActive && showSpinner && (
+      {effectiveLoading && showSpinner && (
         <span
           className="btn-spinner"
           style={{
@@ -80,7 +97,7 @@ const LoaderButton = ({
           }}
         />
       )}
-      {isActive && loadingText ? loadingText : children}
+      {effectiveLoading && loadingText ? loadingText : children}
     </button>
   );
 };

@@ -28,7 +28,7 @@ export const LeavesProvider = ({ children }) => {
         setLeaves(data.leaves || []);
       } else {
         // Normal admin sees own requests + balance in one call
-        const res  = await fetch(`${API_URL}/leaves/my/${user.id}`, { credentials: 'include' });
+        const res  = await fetch(`${API_URL}/leaves/my/${user.employeeId}`, { credentials: 'include' });
         const data = await res.json();
         setLeaves(data.requests || []);
         if (data.balance) setBalance(data.balance);
@@ -58,7 +58,7 @@ export const LeavesProvider = ({ children }) => {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({
-        employeeId:   user.id,
+        employeeId:   user.employeeId,
         employeeName: user.name,
         leaveType, from, to, days, reason,
       }),
@@ -78,7 +78,7 @@ export const LeavesProvider = ({ children }) => {
       method:  'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ status, processedBy: user?.id }),
+      body: JSON.stringify({ status, processedBy: user?.employeeId }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to update');

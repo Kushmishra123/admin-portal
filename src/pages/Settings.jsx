@@ -4,11 +4,12 @@ import Navbar from '../components/Navbar';
 import { useUser } from '../context/UserContext';
 import '../styles/dashboard.css';
 import { API_URL } from '../config';
+import LoaderButton from '../components/LoaderButton';
 
 const Toggle = ({ on, onToggle }) => (
-  <button className={`toggle-switch ${on ? 'on' : ''}`} onClick={onToggle} type="button">
+  <LoaderButton className={`toggle-switch ${on ? 'on' : ''}`} onClick={onToggle} type="button">
     <div className="toggle-thumb" />
-  </button>
+  </LoaderButton>
 );
 
 // Password strength helper
@@ -225,12 +226,12 @@ const Settings = () => {
                   <p style={{ color: '#76c733', fontSize: 13 }}>
                     {isSuperAdmin ? 'Super Admin' : 'Admin'}
                   </p>
-                  <button className="btn-secondary" style={{ marginTop: 8, padding: '6px 16px', fontSize: 12 }}>
+                  <LoaderButton className="btn-secondary" style={{ marginTop: 8, padding: '6px 16px', fontSize: 12 }}>
                     Change Avatar
-                  </button>
+                  </LoaderButton>
                 </div>
               </div>
-              <form onSubmit={handleSave}>
+              <form >
                 <div className="form-grid">
                   <div className="form-group">
                     <label className="form-label">Full Name</label>
@@ -248,7 +249,7 @@ const Settings = () => {
                       value={profile.bio} onChange={e => setProfile(p => ({ ...p, bio: e.target.value }))} />
                   </div>
                 </div>
-                <button type="submit" className="btn-primary">💾 Save Changes</button>
+                <LoaderButton onClick={handleSave} type="submit" className="btn-primary">💾 Save Changes</LoaderButton>
               </form>
             </div>
 
@@ -258,7 +259,7 @@ const Settings = () => {
               <p style={{ fontSize: 13, color: '#888', marginBottom: 20 }}>
                 Update your account password. You must enter your current password to set a new one.
               </p>
-              <form onSubmit={handleOwnPasswordReset}>
+              <form >
                 <div className="form-grid">
                   <div className="form-group">
                     <label className="form-label">Current Password</label>
@@ -329,9 +330,9 @@ const Settings = () => {
                   </div>
                 )}
 
-                <button type="submit" className="btn-primary" disabled={pwLoading}>
+                <LoaderButton onClick={handleOwnPasswordReset} type="submit" className="btn-primary" disabled={pwLoading}>
                   {pwLoading ? '⏳ Updating…' : '🔒 Reset Password'}
-                </button>
+                </LoaderButton>
               </form>
             </div>
 
@@ -344,7 +345,7 @@ const Settings = () => {
                 <p style={{ fontSize: 13, color: '#888', marginBottom: 20 }}>
                   As a Super Admin, you can directly assign a new password to any employee. No current password is required.
                 </p>
-                <form onSubmit={handleAdminPasswordReset}>
+                <form >
                   <div className="form-grid">
                     <div className="form-group">
                       <label className="form-label">Target Employee ID</label>
@@ -391,10 +392,10 @@ const Settings = () => {
                     </div>
                   )}
 
-                  <button type="submit" className="btn-primary" disabled={adminPwLoading}
+                  <LoaderButton onClick={handleAdminPasswordReset} type="submit" className="btn-primary" disabled={adminPwLoading}
                     style={{ background: '#fbbf24', color: '#000' }}>
                     {adminPwLoading ? '⏳ Resetting…' : '👑 Reset Employee Password'}
-                  </button>
+                  </LoaderButton>
                 </form>
               </div>
             )}
