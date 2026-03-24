@@ -40,13 +40,13 @@ const EmployeeTable = ({ onEdit, onViewDetails, onResetPassword }) => {
           <thead>
             <tr>
               <th style={{ width: '10%' }}>Code</th>
-              <th style={{ width: '15%' }}>Name</th>
+              <th style={{ width: '13%' }}>Name</th>
+              <th style={{ width: '8%' }}>Role</th>
               <th style={{ width: '10%' }}>Joining Date</th>
-              <th style={{ width: '15%' }}>Assets</th>
-              <th style={{ width: '8%' }}>Document</th>
-              <th style={{ width: '10%' }}>Dept</th>
-              <th style={{ width: '8%' }}>Shift Type</th>
-              <th style={{ width: '8%' }}>Shift</th>
+              <th style={{ width: '13%' }}>Assets</th>
+              <th style={{ width: '7%' }}>Document</th>
+              <th style={{ width: '9%' }}>Dept</th>
+              <th style={{ width: '7%' }}>Shift</th>
               <th style={{ width: '5%' }}>Offs</th>
               <th style={{ width: '11%' }}>Actions</th>
             </tr>
@@ -63,6 +63,23 @@ const EmployeeTable = ({ onEdit, onViewDetails, onResetPassword }) => {
                   >
                     {emp.name}
                   </a>
+                </td>
+                <td>
+                  {(() => {
+                    const roleMeta = {
+                      superadmin: { label: 'Super Admin', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+                      manager:    { label: 'Manager',     color: '#0ea5e9', bg: 'rgba(14,165,233,0.1)' },
+                      hr:         { label: 'HR',          color: '#a78bfa', bg: 'rgba(167,139,250,0.1)' },
+                      employee:   { label: 'Employee',    color: '#76c733', bg: 'rgba(118,199,51,0.1)' },
+                      admin:      { label: 'Employee',    color: '#76c733', bg: 'rgba(118,199,51,0.1)' },
+                    };
+                    const m = roleMeta[emp.role] || roleMeta.employee;
+                    return (
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20, color: m.color, background: m.bg, border: `1px solid ${m.color}40`, whiteSpace: 'nowrap' }}>
+                        {m.label}
+                      </span>
+                    );
+                  })()}
                 </td>
                 <td style={{ color: '#6b7b6b', fontSize: 13 }}>{emp.joinDate}</td>
                 <td style={{ color: '#6b7b6b', fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }} title={emp.assets}>

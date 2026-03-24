@@ -1,19 +1,23 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { API_URL } from '../config';
+import { useUser } from './UserContext';
 
 const EmployeeContext = createContext();
 
 export const EmployeeProvider = ({ children }) => {
+  const { user } = useUser();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState(null);
 
-  // ── Fetch all employees from the database ──────────────────────────────────
+  // ── Fetch employees scoped to the current user's role ─────────────────────
   const fetchEmployees = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/employees`, { credentials: 'include' });
+      // Pass callerId so server can scope results by role
+      const callerParam = user?.employeeId ? `?callerId=${encodeURIComponent(user.employeeId)}` : '';
+      const res = await fetch(`${API_URL}/employees${callerParam}`, { credentials: 'include' });
       if (!res.ok) throw new Error(`Server responded ${res.status}`);
       const data = await res.json();
       setEmployees(data.employees || []);
@@ -23,9 +27,9 @@ export const EmployeeProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.employeeId]);
 
-  // Fetch on first mount
+  // Fetch on first mount and when user changes
   useEffect(() => {
     fetchEmployees();
   }, [fetchEmployees]);

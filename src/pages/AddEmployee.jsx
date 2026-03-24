@@ -15,8 +15,6 @@ const DURATIONS = ['6 Hours', '8 Hours', '9 Hours'];
 const OFFS = ['None', '1 Day', '2 Days'];
 const WORK_TYPES = ['Rotational (24/7)', 'Fixed'];
 const OVERTIME = ['0 hrs (Base)', '1 hr', '2 hrs'];
-const LEAVE_TYPES = ['Week Off (WO)', 'Sick Leave', 'Casual Leave', 'Earned Leave'];
-const MOCK_EMPLOYEES = ['QBL-E0001 - Puspinder Singh', 'QBL-E0002 - Hemant Sharma', 'QBL-E0003 - Khushi Verma'];
 
 // ── Reusable sub-components ──────────────────────────────────────────────────
 
@@ -106,11 +104,13 @@ const AddEmployee = () => {
     targetCode: '',
     password: '',
     confirmPassword: '',
+    // 🛡️ RBAC
+    role: 'employee',
+    managerId: '',
   });
 
   const [deptForm, setDeptForm] = useState({ deptName: '', workType: 'Rotational (24/7)', offs: '2 Days' });
   const [shiftForm, setShiftForm] = useState({ shiftName: '', shiftCode: '', start: '', end: '', duration: '6 Hours', overtime: '0 hrs (Base)' });
-  const [leaveForm, setLeaveForm] = useState({ employee: 'QBL-E0001 - Puspinder Singh', leaveType: 'Week Off (WO)', fromDate: '', toDate: '', reason: '' });
   const [errors, setErrors] = useState({});
 
   // ── Validation ──
@@ -133,7 +133,6 @@ const AddEmployee = () => {
   };
   const handleDeptChange = (field, val) => setDeptForm(f => ({ ...f, [field]: val }));
   const handleShiftChange = (field, val) => setShiftForm(f => ({ ...f, [field]: val }));
-  const handleLeaveChange = (field, val) => setLeaveForm(f => ({ ...f, [field]: val }));
 
   // ── Submit → saves to MongoDB (users + employeeDetails) ──
   const handleSubmit = async (e) => {
@@ -165,6 +164,9 @@ const AddEmployee = () => {
       endTime: form.endTime,
       kra: form.kra,
       kpa: form.kpa,
+      // RBAC fields
+      role: form.role || 'employee',
+      managerId: user?.role === 'manager' ? user.employeeId : (form.managerId || undefined),
     };
 
     console.log('📤 [ADD-EMPLOYEE FORM] Sending to server:', { ...payload, password: '***hidden***' });
@@ -181,7 +183,7 @@ const AddEmployee = () => {
       console.log('📬 [ADD-EMPLOYEE FORM] Server response:', data);
 
       if (!response.ok) {
-        setServerError(data.message || 'Failed to add employee. Please try again.');
+        setServerError(data.error || data.message || 'Failed to add employee. Please try again.');
         setSubmitLoading(false);
         return;
       }
@@ -263,7 +265,7 @@ const AddEmployee = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(320px, 350px)', gap: 24, alignItems: 'start' }}>
 
             {/* ── Left: Main Form ── */}
-            <form  noValidate>
+            <form onSubmit={handleSubmit} noValidate>
 
               {/* Personal Info */}
               <div className="form-card" style={{ marginBottom: 20 }}>
@@ -370,6 +372,56 @@ const AddEmployee = () => {
                 )}
               </div>
 
+              {/* 🛡️ RBAC — Role & Manager Assignment */}
+              <div className="form-card" style={{ marginBottom: 24, border: '1px solid rgba(99,102,241,0.25)', background: 'rgba(99,102,241,0.04)' }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#818cf8', display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 6px' }}>
+                  🛡️ Role & Access Control
+                </h3>
+                <p style={{ fontSize: 12, color: '#6b7b6b', marginBottom: 20 }}>
+                  Assign a role to control what this user can access in the portal.
+                </p>
+                <div className="form-group" style={{ marginBottom: 16 }}>
+                  <label className="form-label">Role</label>
+                  <select className="form-select" value={form.role} onChange={e => handleChange('role', e.target.value)}>
+                    <option value="employee">Employee — limited view (own data)</option>
+                    {(user?.role === 'superadmin' || user?.role === 'hr') && (
+                      <>
+                        <option value="hr">HR — all employees, no leave approval</option>
+                        <option value="manager">Manager — own team, no leave approval</option>
+                        <option value="superadmin">Super Admin — full access + leave approval</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+                {form.role === 'employee' && (user?.role === 'superadmin' || user?.role === 'hr') && (
+                  <Field
+                    label="Manager Employee Code (Optional)" icon="👔"
+                    field="managerId" placeholder="e.g. QBL-E0010"
+                    hint="Link this employee to a manager. Leave blank if not assigned."
+                    form={form} errors={errors} handleChange={handleChange}
+                  />
+                )}
+                {form.role === 'employee' && user?.role === 'manager' && (
+                  <div style={{ marginTop: 8, marginBottom: 16, fontSize: 13, color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(16,185,129,0.3)' }}>
+                    ✅👔 This employee will be automatically assigned to your team.
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+                  {[
+                    { r: 'superadmin', label: '🛡️ Super Admin', color: '#f59e0b' },
+                    { r: 'manager',    label: '👔 Manager',     color: '#0ea5e9' },
+                    { r: 'hr',         label: '🧑‍💼 HR',          color: '#a78bfa' },
+                    { r: 'employee',   label: '👤 Employee',    color: '#76c733' },
+                  ].map(({ r, label, color }) => (
+                    <span key={r} style={{
+                      fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+                      color, background: `${color}18`, border: `1px solid ${color}40`,
+                      opacity: form.role === r ? 1 : 0.3, transition: 'opacity 0.2s',
+                    }}>{label}</span>
+                  ))}
+                </div>
+              </div>
+
               {/* Server Error Banner */}
               {serverError && (
                 <div style={{
@@ -382,9 +434,10 @@ const AddEmployee = () => {
               )}
 
               <div className="form-actions" style={{ marginBottom: 40 }}>
-                <LoaderButton onClick={handleSubmit}
+                <LoaderButton
                   type="submit"
                   className="btn-primary"
+                  loading={submitLoading}
                   style={{ width: '100%', padding: '14px', opacity: submitLoading ? 0.7 : 1 }}
                   disabled={submitLoading}
                 >
@@ -422,21 +475,6 @@ const AddEmployee = () => {
                 <Select label="Overtime Hours" field="overtime" options={OVERTIME} form={shiftForm} errors={{}} handleChange={handleShiftChange} />
                 <LoaderButton type="button" className="btn-secondary" style={{ width: '100%', marginTop: 8, borderColor: '#0ea5e9', color: '#0ea5e9', background: 'rgba(14,165,233,0.1)' }}>
                   Add Shift
-                </LoaderButton>
-              </div>
-
-              {/* Submit Leave Request */}
-              <div className="form-card" style={{ background: '#080c08' }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 16, borderBottom: '1px solid #1a2a1a' }}>
-                  📋 Submit Leave Request
-                </h3>
-                <Select label="Employee" field="employee" options={MOCK_EMPLOYEES} form={leaveForm} errors={{}} handleChange={handleLeaveChange} />
-                <Select label="Leave Type" field="leaveType" options={LEAVE_TYPES} form={leaveForm} errors={{}} handleChange={handleLeaveChange} />
-                <Field label="From Date" field="fromDate" type="date" form={leaveForm} errors={{}} handleChange={handleLeaveChange} />
-                <Field label="To Date" field="toDate" type="date" form={leaveForm} errors={{}} handleChange={handleLeaveChange} />
-                <Textarea label="Reason" field="reason" form={leaveForm} errors={{}} handleChange={handleLeaveChange} />
-                <LoaderButton type="button" className="btn-primary" style={{ width: '100%', marginTop: 8, background: '#f59e0b', color: '#000', border: 'none' }}>
-                  Submit Request
                 </LoaderButton>
               </div>
 

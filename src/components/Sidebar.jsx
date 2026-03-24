@@ -13,24 +13,61 @@ const Sidebar = () => {
     navigate('/');
   };
 
-  const adminLinks = [
-    { to: '/employees', icon: '👥', label: 'Employee Directory' },
-    { to: '/analytics', icon: '📈', label: 'Analytics' },
-    { to: '/dashboard', icon: '📊', label: 'Dashboard' },
+  // ── Role-based nav link sets ─────────────────────────────────────────────────
+  const superadminLinks = [
+    { to: '/employees',    icon: '👥', label: 'Employee Directory' },
+    { to: '/analytics',   icon: '📈', label: 'Analytics' },
+    { to: '/dashboard',   icon: '📊', label: 'Dashboard' },
     { to: '/manage-leaves', icon: '📅', label: 'Manage Leaves' },
-    { to: '/settings', icon: '⚙️', label: 'Settings' },
-    { to: '/about', icon: '🏢', label: 'About Company' },
+    { to: '/apply-leave', icon: '✍️', label: 'Apply Leave' },
+    { to: '/settings',    icon: '⚙️', label: 'Settings' },
+    { to: '/about',       icon: '🏢', label: 'About Company' },
+  ];
+
+  const managerLinks = [
+    { to: '/employees',    icon: '👥', label: 'My Team' },
+    { to: '/dashboard',   icon: '📊', label: 'Dashboard' },
+    { to: '/manage-leaves', icon: '📅', label: 'Team Leaves' },
+    { to: '/apply-leave', icon: '✍️', label: 'Apply Leave' },
+    { to: '/settings',    icon: '⚙️', label: 'Settings' },
+    { to: '/about',       icon: '🏢', label: 'About Company' },
+  ];
+
+  const hrLinks = [
+    { to: '/employees',    icon: '👥', label: 'Employee Directory' },
+    { to: '/dashboard',   icon: '📊', label: 'Dashboard' },
+    { to: '/manage-leaves', icon: '📅', label: 'All Leaves' },
+    { to: '/apply-leave', icon: '✍️', label: 'Apply Leave' },
+    { to: '/settings',    icon: '⚙️', label: 'Settings' },
+    { to: '/about',       icon: '🏢', label: 'About Company' },
   ];
 
   const employeeLinks = [
     { to: '/dashboard', icon: '📊', label: 'Dashboard' },
     { to: '/my-leaves', icon: '📅', label: 'My Leaves' },
-    { to: '/policy', icon: '📋', label: 'Policy' },
-    { to: '/about', icon: '🏢', label: 'About Company' },
-    { to: '/settings', icon: '⚙️', label: 'Settings' },
+    { to: '/policy',    icon: '📋', label: 'Policy' },
+    { to: '/about',     icon: '🏢', label: 'About Company' },
+    { to: '/settings',  icon: '⚙️', label: 'Settings' },
   ];
 
-  const links = user?.role === 'superadmin' ? adminLinks : employeeLinks;
+  const role = user?.role;
+  const links =
+    role === 'superadmin' ? superadminLinks :
+    role === 'manager'    ? managerLinks    :
+    role === 'hr'         ? hrLinks         :
+    employeeLinks; // employee / admin (legacy)
+
+  const sectionLabel =
+    role === 'superadmin' ? 'ADMIN PANEL' :
+    role === 'manager'    ? 'MANAGER PANEL' :
+    role === 'hr'         ? 'HR PANEL' :
+    'USER MENU';
+
+  const roleDisplay =
+    role === 'superadmin' ? 'Super Admin' :
+    role === 'manager'    ? 'Manager'     :
+    role === 'hr'         ? 'HR'          :
+    'Employee';
 
   return (
     <div className={`left-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
@@ -53,9 +90,7 @@ const Sidebar = () => {
       </div>
 
       {/* Section label */}
-      <p className="sidebar-section-label">
-        {user?.role === 'superadmin' ? 'ADMIN PANEL' : 'USER MENU'}
-      </p>
+      <p className="sidebar-section-label">{sectionLabel}</p>
 
       {/* Nav Links */}
       <nav className="sidebar-menu">
@@ -77,9 +112,7 @@ const Sidebar = () => {
           <div className="sidebar-avatar">{user?.initials}</div>
           <div className="sidebar-user-info">
             <p className="sidebar-user-name">{user?.name}</p>
-            <p className="sidebar-user-role">
-              {user?.role === 'superadmin' ? 'Super Admin' : 'Admin'}
-            </p>
+            <p className="sidebar-user-role">{roleDisplay}</p>
           </div>
         </div>
         <LoaderButton className="signout-btn" onClick={onLogout}>

@@ -434,7 +434,7 @@ const Dashboard = () => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const isAdmin = user?.role === 'superadmin';
+  const isAdmin = user?.role === 'superadmin' || user?.role === 'manager' || user?.role === 'hr';
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
@@ -522,7 +522,10 @@ const Dashboard = () => {
     { icon: '👥', label: 'Manage Employees', path: '/employees' },
     { icon: '📅', label: 'Manage Leaves', path: '/manage-leaves' },
     { icon: '⚙️', label: 'Settings', path: '/settings' },
-  ];
+  ].filter(a => {
+    if (a.path === '/analytics' && user?.role !== 'superadmin') return false;
+    return true;
+  });
 
   const employeeActions = [
     { icon: '📅', label: 'Apply for Leave', path: '/my-leaves' },

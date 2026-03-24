@@ -49,7 +49,7 @@ const ManageLeaves = () => {
     <div className="admin-layout">
       <Sidebar />
       <div className="main-wrapper">
-        <Navbar title="Manage Leaves" subtitle="Review and process employee leave requests" />
+        <Navbar title="Manage Leaves" subtitle={user?.role === 'superadmin' ? 'Review and process employee leave requests' : 'View your team\'s leave requests'} />
 
         <div className="content-container">
           <div className="page-header">
@@ -66,7 +66,11 @@ const ManageLeaves = () => {
                   </span>
                 )}
               </h1>
-              <p className="page-subtitle">Approve or reject pending leave requests from employees</p>
+              <p className="page-subtitle">
+                {user?.role === 'superadmin'
+                  ? 'Approve or reject pending leave requests from employees'
+                  : 'View leave requests — only Super Admin can approve or reject'}
+              </p>
             </div>
             <LoaderButton className="btn-secondary" onClick={refreshLeaves} style={{ opacity: loading ? 0.6 : 1 }}>
               🔄 Refresh
@@ -135,7 +139,7 @@ const ManageLeaves = () => {
                     </td>
                     <td><span className={statusClass(l.status)}>{l.status}</span></td>
                     <td>
-                      {l.status === 'Pending' ? (
+                      {l.status === 'Pending' && user?.role === 'superadmin' ? (
                         <div style={{ display: 'flex', gap: 6 }}>
                           <LoaderButton
                             onClick={() => handleAction(l, 'Approved')}
@@ -162,6 +166,14 @@ const ManageLeaves = () => {
                             ✕ Reject
                           </LoaderButton>
                         </div>
+                      ) : l.status === 'Pending' ? (
+                        <span style={{
+                          fontSize: 12, color: '#f59e0b', fontStyle: 'italic',
+                          background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)',
+                          borderRadius: 6, padding: '3px 8px',
+                        }}>
+                          ⏳ View Only
+                        </span>
                       ) : (
                         <div>
                           <span style={{ color: '#6b7b6b', fontSize: 13 }}>Processed</span>
@@ -173,6 +185,7 @@ const ManageLeaves = () => {
                         </div>
                       )}
                     </td>
+
                   </tr>
                 ))}
               </tbody>

@@ -631,9 +631,11 @@ const Employees = () => {
               <h1 className="page-title">Admin Control</h1>
               <p className="page-subtitle">Manage and track all organisation employees</p>
             </div>
-            <LoaderButton className="btn-primary" onClick={() => navigate('/add-employee')}>
-              ➕ Add Employee
-            </LoaderButton>
+            {(user?.role === 'superadmin' || user?.role === 'manager' || user?.role === 'hr') && (
+              <LoaderButton className="btn-primary" onClick={() => navigate('/add-employee')}>
+                ➕ Add Employee
+              </LoaderButton>
+            )}
           </div>
 
           <EmployeeTable

@@ -15,11 +15,11 @@ import ManageLeaves from './pages/ManageLeaves';
 import Signup from './pages/Signup';
 import AboutCompany from './pages/AboutCompany';
 import Policy from './pages/Policy';
+import ApplyLeave from './pages/ApplyLeave';
 import BirthdayPopup from './components/BirthdayPopup';
 
 function App() {
   const [user, setUser] = useState(() => {
-    // Check localStorage for saved user on initial load
     const savedUser = localStorage.getItem('qb_user');
     try {
       return savedUser ? JSON.parse(savedUser) : null;
@@ -29,7 +29,6 @@ function App() {
     }
   });
 
-  // Sync user state to localStorage whenever it changes
   useEffect(() => {
     if (user) {
       localStorage.setItem('qb_user', JSON.stringify(user));
@@ -49,6 +48,16 @@ function App() {
     setUser(null);
   };
 
+  // ── Role helpers ─────────────────────────────────────────────────────────────
+  const role = user?.role;
+  const isSuperAdmin = role === 'superadmin';
+  const isManager    = role === 'manager';
+  const isHR         = role === 'hr';
+  const isEmployee   = role === 'employee' || role === 'admin'; // backward compat
+
+  // Elevated = superadmin | manager | hr  (all three can see employee directory + manage leaves)
+  const isElevated   = isSuperAdmin || isManager || isHR;
+
   return (
     <UserContext.Provider value={{ user, setUser, handleLogout, isSidebarCollapsed, setIsSidebarCollapsed }}>
       <LoaderProvider>
@@ -56,7 +65,7 @@ function App() {
           <LeavesProvider>
             <Router>
             <Routes>
-              {/* Root — redirect based on role */}
+              {/* Root — redirect based on auth */}
               <Route
                 path="/"
                 element={
@@ -68,20 +77,44 @@ function App() {
                 }
               />
 
-              {/* Shared Routes */}
-              <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/" />} />
-              <Route path="/settings"  element={user ? <Settings />  : <Navigate to="/" />} />
+              {/* Shared Routes — any logged-in user */}
+              <Route path="/dashboard" element={user ? <Dashboard />    : <Navigate to="/" />} />
+              <Route path="/settings"  element={user ? <Settings />     : <Navigate to="/" />} />
               <Route path="/about"     element={user ? <AboutCompany /> : <Navigate to="/" />} />
 
-              {/* Superadmin-only Routes */}
-              <Route path="/employees"    element={user?.role === 'superadmin' ? <Employees />   : <Navigate to="/" />} />
-              <Route path="/add-employee" element={user?.role === 'superadmin' ? <AddEmployee /> : <Navigate to="/" />} />
-              <Route path="/analytics"    element={user?.role === 'superadmin' ? <Analytics />   : <Navigate to="/" />} />
-              <Route path="/manage-leaves" element={user?.role === 'superadmin' ? <ManageLeaves /> : <Navigate to="/" />} />
+              {/* Elevated routes — superadmin | manager | hr */}
+              <Route
+                path="/employees"
+                element={user && isElevated ? <Employees />   : <Navigate to="/" />}
+              />
+              <Route
+                path="/manage-leaves"
+                element={user && isElevated ? <ManageLeaves /> : <Navigate to="/" />}
+              />
+              <Route
+                path="/apply-leave"
+                element={user && isElevated ? <ApplyLeave />  : <Navigate to="/" />}
+              />
 
-              {/* Admin-only Routes (non-superadmin logged-in users) */}
-              <Route path="/my-leaves" element={user?.role === 'admin' ? <MyLeaves /> : <Navigate to="/" />} />
-              <Route path="/policy"    element={user?.role === 'admin' ? <Policy />   : <Navigate to="/" />} />
+              {/* Add Employee — Superadmin, Manager & HR */}
+              <Route
+                path="/add-employee"
+                element={user && (isSuperAdmin || isManager || isHR) ? <AddEmployee /> : <Navigate to="/" />}
+              />
+              <Route
+                path="/analytics"
+                element={user && isSuperAdmin ? <Analytics />   : <Navigate to="/" />}
+              />
+
+              {/* Employee-only Routes */}
+              <Route
+                path="/my-leaves"
+                element={user && isEmployee ? <MyLeaves /> : <Navigate to="/" />}
+              />
+              <Route
+                path="/policy"
+                element={user && isEmployee ? <Policy />   : <Navigate to="/" />}
+              />
 
               {/* Public Signup Page */}
               <Route path="/signup" element={<Signup />} />

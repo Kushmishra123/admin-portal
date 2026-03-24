@@ -158,6 +158,33 @@ app.post('/api/auth/signup', async (req, res) => {
   }
 });
 
+// ── RBAC Helpers ─────────────────────────────────────────────────────────────
+// Normalize legacy 'admin' role to 'employee'
+const normalizeRole = (role) => role === 'admin' ? 'employee' : (role || 'employee');
+
+// Roles that have elevated privileges
+const isElevated = (role) => ['superadmin', 'manager', 'hr'].includes(normalizeRole(role));
+
+// Middleware: require caller's employeeId passed as query param ?callerId=
+// (lightweight, no JWT — consistent with existing pattern)
+const requireRole = (...roles) => async (req, res, next) => {
+  const callerId = req.query.callerId || req.body.callerId;
+  if (!callerId) return res.status(401).json({ message: 'Unauthorized: callerId required' });
+  try {
+    const caller = await User.findOne({ employeeId: callerId.toUpperCase() });
+    if (!caller) return res.status(401).json({ message: 'Unauthorized: caller not found' });
+    const callerRole = normalizeRole(caller.role);
+    if (!roles.includes(callerRole)) {
+      return res.status(403).json({ message: `Forbidden: requires role(s): ${roles.join(', ')}` });
+    }
+    req.caller = caller;
+    req.callerRole = callerRole;
+    next();
+  } catch (err) {
+    res.status(500).json({ message: 'Auth error', error: err.message });
+  }
+};
+
 // Login Route
 app.post('/api/auth/login', async (req, res) => {
   const { employeeId, password } = req.body;
@@ -170,15 +197,19 @@ app.post('/api/auth/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
+    const role = normalizeRole(user.role);
+
     res.status(200).json({
       message: "Login successful",
       user: {
         employeeId: user.employeeId,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role,                              // normalized
         initials: user.initials,
         policyStatus: user.policyStatus ?? false,
+        managerId: user.managerId || null,
+        assignedEmployees: user.assignedEmployees || [],
       }
     });
 
@@ -448,12 +479,93 @@ const EmployeeLeave = require('./models/EmployeeLeave');
 //   1. users          → employeeId, name, email, password (hashed), role, initials
 //   2. employeedetails → everything else, linked to users via userId
 
+// ─── ASSIGN EMPLOYEES TO MANAGER ─────────────────────────────────────────────
+// POST /api/managers/:managerId/assign
+// Body: { employeeIds: ['QBL-E0001', ...], callerId: 'QBL-E0018' }
+app.post('/api/managers/:managerId/assign', async (req, res) => {
+  const { managerId } = req.params;
+  const { employeeIds = [], callerId } = req.body;
+
+  // Only superadmin or hr can assign
+  if (!callerId) return res.status(401).json({ message: 'callerId required' });
+  try {
+    const caller = await User.findOne({ employeeId: callerId.toUpperCase() });
+    if (!caller || !['superadmin', 'hr'].includes(normalizeRole(caller.role))) {
+      return res.status(403).json({ message: 'Forbidden: superadmin or hr required' });
+    }
+
+    const manager = await User.findOne({ employeeId: managerId.toUpperCase() });
+    if (!manager || normalizeRole(manager.role) !== 'manager') {
+      return res.status(400).json({ message: 'Target must be a manager' });
+    }
+
+    // Resolve employee DB ObjectIds
+    const empUsers = await User.find({ employeeId: { $in: employeeIds.map(e => e.toUpperCase()) } });
+    const empObjectIds = empUsers.map(u => u._id);
+
+    // Update manager's assignedEmployees
+    manager.assignedEmployees = empObjectIds;
+    await manager.save();
+
+    // Update each employee's managerId
+    await User.updateMany(
+      { _id: { $in: empObjectIds } },
+      { $set: { managerId: manager._id } }
+    );
+
+    res.status(200).json({ message: 'Employees assigned to manager', managerId, count: empObjectIds.length });
+  } catch (err) {
+    console.error('❌ [ASSIGN-MANAGER] Error:', err.message);
+    res.status(500).json({ message: 'Failed to assign employees', error: err.message });
+  }
+});
+
+// ─── GET MANAGERS LIST ────────────────────────────────────────────────────────
+app.get('/api/managers', async (req, res) => {
+  try {
+    const managers = await User.find({ role: 'manager' }, '-password').populate('assignedEmployees', 'employeeId name');
+    res.status(200).json({ managers: managers.map(m => ({
+      id: m.employeeId,
+      name: m.name,
+      email: m.email,
+      initials: m.initials,
+      assignedEmployees: (m.assignedEmployees || []).map(e => ({ id: e.employeeId, name: e.name })),
+    })) });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch managers', error: err.message });
+  }
+});
+
+// ─── UPDATE USER ROLE ─────────────────────────────────────────────────────────
+// POST /api/auth/update-role
+// Body: { callerId, targetEmployeeId, role }
+app.post('/api/auth/update-role', async (req, res) => {
+  const { callerId, targetEmployeeId, role } = req.body;
+  const validRoles = ['superadmin', 'manager', 'hr', 'employee'];
+  if (!callerId || !targetEmployeeId || !role) return res.status(400).json({ message: 'callerId, targetEmployeeId, role required' });
+  if (!validRoles.includes(role)) return res.status(400).json({ message: `role must be one of: ${validRoles.join(', ')}` });
+  try {
+    const caller = await User.findOne({ employeeId: callerId.toUpperCase() });
+    if (!caller || normalizeRole(caller.role) !== 'superadmin') {
+      return res.status(403).json({ message: 'Forbidden: superadmin required' });
+    }
+    const target = await User.findOne({ employeeId: targetEmployeeId.toUpperCase() });
+    if (!target) return res.status(404).json({ message: 'Target employee not found' });
+    target.role = role;
+    await target.save();
+    res.status(200).json({ message: `Role updated to ${role} for ${target.name}`, employeeId: target.employeeId, role });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to update role', error: err.message });
+  }
+});
+
 app.post('/api/employees/add-employee', async (req, res) => {
   const {
     employeeCode, fullName, email, password,
     designation, department, gender, dob, joinDate,
     assets, docUrl, shiftType, shift, offsPerWeek,
-    duration, startTime, endTime, kra, kpa, phone, color
+    duration, startTime, endTime, kra, kpa, phone, color,
+    role: assignedRole, managerId: assignedManagerId
   } = req.body;
 
   // ── Validation ──
@@ -469,25 +581,49 @@ app.post('/api/employees/add-employee', async (req, res) => {
   });
 
   try {
-    // ── Step 1: Check if user already exists ──
-    const existing = await User.findOne({ employeeId: employeeCode.toUpperCase() });
-    if (existing) {
-      return res.status(400).json({ message: `Employee with ID ${employeeCode} already exists` });
+    // ── Step 1: Check if user or detail already exists ──
+    const [existingUser, existingDetail] = await Promise.all([
+      User.findOne({ employeeId: employeeCode.toUpperCase() }),
+      EmployeeDetail.findOne({ employeeId: employeeCode.toUpperCase() })
+    ]);
+
+    if (existingUser || existingDetail) {
+      const coll = existingUser ? 'System (User)' : 'Database (Detail)';
+      return res.status(400).json({
+        message: `Employee Code ${employeeCode} is already assigned in ${coll}.`,
+        error: `Duplicate Key in ${coll}`
+      });
     }
 
     // ── Step 2: Hash password ──
     const hashedPassword = await bcrypt.hash(password, 10);
     const initials = fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'EE';
-    const resolvedEmail = email || `${fullName.split(' ')[0].toLowerCase()}@quisitive.com`;
+    // Use employeeCode in default email to ensure uniqueness
+    const resolvedEmail = email || `${fullName.split(' ')[0].toLowerCase()}.${employeeCode.toLowerCase()}@quisitive.com`;
 
     // ── Step 3: Save to USERS table ──
+    // Determine role: use explicit assignedRole if provided, else default to 'employee'
+    const validRoles = ['superadmin', 'manager', 'hr', 'employee'];
+    const finalRole = validRoles.includes(assignedRole) ? assignedRole : 'employee';
+
+    // Resolve managerId ObjectId if provided
+    let managerUser = null;
+    let managerObjectId = null;
+    if (assignedManagerId) {
+      managerUser = await User.findOne({ employeeId: assignedManagerId.toUpperCase() });
+      if (managerUser && (normalizeRole(managerUser.role) === 'manager' || managerUser.role === 'superadmin')) {
+        managerObjectId = managerUser._id;
+      }
+    }
+
     const newUser = new User({
       employeeId: employeeCode.toUpperCase(),
       name: fullName,
       email: resolvedEmail,
       password: hashedPassword,
-      role: 'admin',          // all employees added via portal get 'admin' role
+      role: finalRole,
       initials,
+      managerId: managerObjectId,
     });
 
     console.log('\n🗃️  [ADD-EMPLOYEE] Saving to USERS table:');
@@ -501,6 +637,17 @@ app.post('/api/employees/add-employee', async (req, res) => {
     });
 
     await newUser.save();
+
+    // If assigned to a manager, update the manager's assignedEmployees array
+    if (managerObjectId && managerUser) {
+      if (!managerUser.assignedEmployees) managerUser.assignedEmployees = [];
+      const alreadyAssigned = managerUser.assignedEmployees.some(id => id.toString() === newUser._id.toString());
+      if (!alreadyAssigned) {
+        managerUser.assignedEmployees.push(newUser._id);
+        await managerUser.save();
+        console.log(`🔗 [ADD-EMPLOYEE] Linked ${newUser.employeeId} to manager ${managerUser.employeeId}`);
+      }
+    }
 
     // ── Step 4: Save to EMPLOYEE_DETAILS table (referencing userId) ──
     const bgColors = ['#0f2d1e', '#2d0f1e', '#0f1e2d', '#2d1e0f'];
@@ -555,6 +702,11 @@ app.post('/api/employees/add-employee', async (req, res) => {
       // Don't fail the whole request, as the user is already created
     }
 
+    // (Redundant check removed as it's handled above during initial save block)
+    if (false && managerObjectId) {
+      // Logic moved to Step 3 block
+    }
+
     // ── Step 6: Respond ──
     res.status(201).json({
       message: 'Employee added successfully',
@@ -595,11 +747,36 @@ app.post('/api/employees/add-employee', async (req, res) => {
   }
 });
 
-// ─── GET ALL EMPLOYEES ────────────────────────────────────────────────────────
+// ─── GET ALL EMPLOYEES (RBAC-scoped) ─────────────────────────────────────────
+// Query param: ?callerId=QBL-E0018  (required for non-public context)
+// superadmin → all employees
+// hr         → all employees
+// manager    → only their assignedEmployees
+// employee   → only themselves
 app.get('/api/employees', async (req, res) => {
   try {
-    // Get all employee details, then join with users for name/email/initials
-    const details = await EmployeeDetail.find({});
+    const callerId = req.query.callerId;
+
+    // Determine scope filter
+    let scope = null; // null = fetch all
+    if (callerId) {
+      const caller = await User.findOne({ employeeId: callerId.toUpperCase() });
+      if (caller) {
+        const callerRole = normalizeRole(caller.role);
+        if (callerRole === 'manager') {
+          // Only assigned employees
+          const assignedIds = caller.assignedEmployees || [];
+          scope = { userId: { $in: assignedIds } };
+        } else if (callerRole === 'employee') {
+          // Only themselves
+          scope = { userId: caller._id };
+        }
+        // superadmin and hr: no filter (all employees)
+      }
+    }
+
+    // Get employee details (scoped)
+    const details = await EmployeeDetail.find(scope || {});
     const userIds = details.map(d => d.userId);
     const users = await User.find({ _id: { $in: userIds } }, '-password');
 
@@ -614,7 +791,7 @@ app.get('/api/employees', async (req, res) => {
         name: u.name || '',
         email: d.email || u.email || '',
         initials: u.initials || '',
-        role: u.role || 'admin',
+        role: normalizeRole(u.role),
         designation: d.designation,
         department: d.department,
         gender: d.gender,
@@ -634,6 +811,7 @@ app.get('/api/employees', async (req, res) => {
         kpa: d.kpa,
         color: d.color,
         phone: d.phone,
+        managerId: u.managerId || null,
       };
     });
 
@@ -806,10 +984,27 @@ app.get('/api/leaves/my/:employeeId', async (req, res) => {
 });
 
 // ── GET /api/leaves/all ───────────────────────────────────────────────────────
-// Superadmin: returns ALL requests from ALL employees, flattened
+// superadmin / hr → ALL employees' requests
+// manager         → only assigned employees' requests
+// Query param: ?callerId=QBL-E0018
 app.get('/api/leaves/all', async (req, res) => {
   try {
-    const docs = await EmployeeLeave.find({}).populate('userId', 'name email role');
+    const callerId = req.query.callerId;
+    let docs;
+
+    if (callerId) {
+      const caller = await User.findOne({ employeeId: callerId.toUpperCase() });
+      if (caller && normalizeRole(caller.role) === 'manager') {
+        // Manager: only their team's leave docs
+        const assignedIds = caller.assignedEmployees || [];
+        docs = await EmployeeLeave.find({ userId: { $in: assignedIds } }).populate('userId', 'name email role');
+      } else {
+        docs = await EmployeeLeave.find({}).populate('userId', 'name email role');
+      }
+    } else {
+      docs = await EmployeeLeave.find({}).populate('userId', 'name email role');
+    }
+
     // Flatten all embedded requests into a single array
     const allRequests = [];
     docs.forEach(doc => {
@@ -840,11 +1035,22 @@ app.get('/api/leaves/all', async (req, res) => {
 });
 
 // ── PATCH /api/leaves/:employeeLeaveId/request/:requestId/status ──────────────
-// Superadmin approves or rejects a specific request inside employee_leave doc
+// ONLY superadmin can approve or reject — manager/hr/employee are blocked
 app.patch('/api/leaves/:employeeLeaveId/request/:requestId/status', async (req, res) => {
   const { status, processedBy } = req.body;
   if (!['Approved', 'Rejected'].includes(status)) {
     return res.status(400).json({ message: 'Status must be Approved or Rejected' });
+  }
+  // Role check: only superadmin may approve/reject
+  if (processedBy) {
+    try {
+      const processor = await User.findOne({ employeeId: processedBy.toUpperCase() });
+      if (!processor || normalizeRole(processor.role) !== 'superadmin') {
+        return res.status(403).json({ message: 'Forbidden: Only Super Admin can approve or reject leave requests.' });
+      }
+    } catch (err) {
+      return res.status(500).json({ message: 'Auth check failed', error: err.message });
+    }
   }
   try {
     const doc = await EmployeeLeave.findById(req.params.employeeLeaveId);

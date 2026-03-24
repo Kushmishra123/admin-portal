@@ -34,18 +34,18 @@ const LoaderButton = ({
   const isDisabled = disabled || isLoading || effectiveLoading;
 
   const handleClick = async (e) => {
+    if (!onClick) return;
+    if (isDisabled) { e.preventDefault(); return; }
+
     if (type === 'submit' && e.currentTarget.form) {
-      // By default prevent the native submission because we are attaching custom logic via onClick.
-      // E.g. our node script mapped form onSubmit to the submit button's onClick.
+      // Prevent native submission only if we are taking over with onClick.
       e.preventDefault();
       
-      // Native validation check (shows standard HTML popup warnings for "required" and other things!)
+      // Native validation check
       if (!e.currentTarget.form.reportValidity()) {
         return;
       }
     }
-
-    if (!onClick || isDisabled) return;
 
     try {
       const result = onClick(e);

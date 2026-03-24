@@ -21,9 +21,9 @@ export const LeavesProvider = ({ children }) => {
     if (!user) return;
     setLoading(true);
     try {
-      if (user.role === 'superadmin') {
-        // Superadmin sees ALL requests (flat list from all employees)
-        const res  = await fetch(`${API_URL}/leaves/all`, { credentials: 'include' });
+      if (user.role === 'superadmin' || user.role === 'manager' || user.role === 'hr') {
+        // Elevated roles see all (or scoped) requests
+        const res  = await fetch(`${API_URL}/leaves/all?callerId=${encodeURIComponent(user.employeeId)}`, { credentials: 'include' });
         const data = await res.json();
         setLeaves(data.leaves || []);
       } else {
