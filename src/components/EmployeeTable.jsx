@@ -140,9 +140,8 @@ const EmployeeTable = ({ onEdit, onViewDetails, onResetPassword }) => {
                       </svg>
                     </LoaderButton>
 
-                    {/* Reset Password & Delete — Only for Super Admins */}
-                    {user?.role === 'superadmin' && (
-                      <>
+                    {/* Reset Password — HR Only */}
+                    {user?.role === 'hr' && (
                         <LoaderButton
                           style={{
                             background: 'transparent',
@@ -160,8 +159,10 @@ const EmployeeTable = ({ onEdit, onViewDetails, onResetPassword }) => {
                             <path d="M15.5 7.5l3 3L22 7l-3-3"></path>
                           </svg>
                         </LoaderButton>
+                    )}
 
-                        {/* Delete */}
+                    {/* Delete — Accessible to Super Admins, HR, and Managers */}
+                    {(user?.role === 'superadmin' || user?.role === 'hr' || user?.role === 'manager') && (
                         <LoaderButton
                           style={{
                             background: 'transparent',
@@ -180,7 +181,6 @@ const EmployeeTable = ({ onEdit, onViewDetails, onResetPassword }) => {
                             <line x1="14" y1="11" x2="14" y2="17"></line>
                           </svg>
                         </LoaderButton>
-                      </>
                     )}
                   </div>
                 </td>

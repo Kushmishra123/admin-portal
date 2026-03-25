@@ -3,11 +3,13 @@ import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import { useLeaves } from '../context/LeavesContext';
 import { useUser } from '../context/UserContext';
+import { useNavigate } from 'react-router-dom';
 import '../styles/dashboard.css';
 import LoaderButton from '../components/LoaderButton';
 
 const ManageLeaves = () => {
   const { user } = useUser();
+  const navigate = useNavigate();
   const { leaves, loading, updateLeaveStatus, refreshLeaves } = useLeaves();
 
   const [showToast, setShowToast] = useState(false);
@@ -72,9 +74,14 @@ const ManageLeaves = () => {
                   : 'View leave requests — only Super Admin can approve or reject'}
               </p>
             </div>
-            <LoaderButton className="btn-secondary" onClick={refreshLeaves} style={{ opacity: loading ? 0.6 : 1 }}>
-              🔄 Refresh
-            </LoaderButton>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <LoaderButton className="btn-secondary" onClick={refreshLeaves} style={{ opacity: loading ? 0.6 : 1 }}>
+                🔄 Refresh
+              </LoaderButton>
+              <LoaderButton className="btn-primary" onClick={() => navigate('/my-leaves')}>
+                ✍️ Apply My Leave
+              </LoaderButton>
+            </div>
           </div>
 
           {/* Filter tabs */}

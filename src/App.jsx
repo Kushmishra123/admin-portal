@@ -93,7 +93,7 @@ function App() {
               />
               <Route
                 path="/apply-leave"
-                element={user && isElevated ? <ApplyLeave />  : <Navigate to="/" />}
+                element={user && isHR ? <ApplyLeave />  : <Navigate to="/" />}
               />
 
               {/* Add Employee — Superadmin, Manager & HR */}
@@ -106,14 +106,14 @@ function App() {
                 element={user && isSuperAdmin ? <Analytics />   : <Navigate to="/" />}
               />
 
-              {/* Employee-only Routes */}
+              {/* Employee-facing Routes (everyone needs access to apply for their own leave) */}
               <Route
                 path="/my-leaves"
-                element={user && isEmployee ? <MyLeaves /> : <Navigate to="/" />}
+                element={user ? <MyLeaves /> : <Navigate to="/" />}
               />
               <Route
                 path="/policy"
-                element={user && isEmployee ? <Policy />   : <Navigate to="/" />}
+                element={user ? <Policy />   : <Navigate to="/" />}
               />
 
               {/* Public Signup Page */}

@@ -19,7 +19,6 @@ const Sidebar = () => {
     { to: '/analytics',   icon: '📈', label: 'Analytics' },
     { to: '/dashboard',   icon: '📊', label: 'Dashboard' },
     { to: '/manage-leaves', icon: '📅', label: 'Manage Leaves' },
-    { to: '/apply-leave', icon: '✍️', label: 'Apply Leave' },
     { to: '/settings',    icon: '⚙️', label: 'Settings' },
     { to: '/about',       icon: '🏢', label: 'About Company' },
   ];
@@ -28,7 +27,6 @@ const Sidebar = () => {
     { to: '/employees',    icon: '👥', label: 'My Team' },
     { to: '/dashboard',   icon: '📊', label: 'Dashboard' },
     { to: '/manage-leaves', icon: '📅', label: 'Team Leaves' },
-    { to: '/apply-leave', icon: '✍️', label: 'Apply Leave' },
     { to: '/settings',    icon: '⚙️', label: 'Settings' },
     { to: '/about',       icon: '🏢', label: 'About Company' },
   ];

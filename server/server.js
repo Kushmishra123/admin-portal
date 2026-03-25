@@ -331,10 +331,10 @@ app.post('/api/auth/admin-reset-password', async (req, res) => {
   }
 
   try {
-    // Verify requester is a superadmin
+    // Verify requester is a superadmin or HR
     const adminUser = await User.findOne({ employeeId: adminEmployeeId.toUpperCase() });
-    if (!adminUser || adminUser.role !== 'superadmin') {
-      return res.status(403).json({ message: "Access denied. Super Admin privileges required." });
+    if (!adminUser || (adminUser.role !== 'superadmin' && adminUser.role !== 'hr')) {
+      return res.status(403).json({ message: "Access denied. Super Admin or HR privileges required." });
     }
 
     // Find target employee
@@ -396,7 +396,7 @@ app.put('/api/auth/update', async (req, res) => {
 // ─── ADMIN RESET PASSWORD (RESTful, with activity log) ───────────────────────
 // POST /api/admin/reset-password/:employeeId
 // Body: { adminEmployeeId, newPassword }
-// Only accessible by superadmin. Logs who reset whose password.
+// Only accessible by superadmin or hr. Logs who reset whose password.
 app.post('/api/admin/reset-password/:employeeId', async (req, res) => {
   const { employeeId } = req.params;
   const { adminEmployeeId, newPassword } = req.body;
@@ -410,11 +410,11 @@ app.post('/api/admin/reset-password/:employeeId', async (req, res) => {
   }
 
   try {
-    // ── Step 1: Verify requester is superadmin ──
+    // ── Step 1: Verify requester is superadmin or hr ──
     const adminUser = await User.findOne({ employeeId: adminEmployeeId.toUpperCase() });
-    if (!adminUser || adminUser.role !== 'superadmin') {
+    if (!adminUser || (adminUser.role !== 'superadmin' && adminUser.role !== 'hr')) {
       console.warn(`🚫 [ADMIN-RESET] Unauthorised attempt by ${adminEmployeeId} to reset ${employeeId}`);
-      return res.status(403).json({ message: 'Access denied. Super Admin privileges required.' });
+      return res.status(403).json({ message: 'Access denied. Super Admin or HR privileges required.' });
     }
 
     // ── Step 2: Find target employee ──
@@ -473,6 +473,7 @@ app.get('/api/users', async (req, res) => {
 
 const EmployeeDetail = require('./models/EmployeeDetail');
 const EmployeeLeave = require('./models/EmployeeLeave');
+const ManagerData = require('./models/ManagerData');
 
 // ─── ADD EMPLOYEE ROUTE ───────────────────────────────────────────────────────
 // Saves to TWO tables:
@@ -511,6 +512,19 @@ app.post('/api/managers/:managerId/assign', async (req, res) => {
     await User.updateMany(
       { _id: { $in: empObjectIds } },
       { $set: { managerId: manager._id } }
+    );
+
+    // Sync with ManagerData collection
+    const newEmployeesData = empUsers.map(u => ({
+      employeeId: u.employeeId,
+      employeeName: u.name,
+      email: u.email,
+      role: u.role
+    }));
+    await ManagerData.findOneAndUpdate(
+      { managerId: manager.employeeId },
+      { $addToSet: { employees: { $each: newEmployeesData } } },
+      { upsert: true }
     );
 
     res.status(200).json({ message: 'Employees assigned to manager', managerId, count: empObjectIds.length });
@@ -638,6 +652,20 @@ app.post('/api/employees/add-employee', async (req, res) => {
 
     await newUser.save();
 
+    // If role is manager, create an entry in ManagerData
+    if (finalRole === 'manager') {
+      try {
+        await ManagerData.create({
+          managerId: newUser.employeeId,
+          managerName: newUser.name,
+          employees: []
+        });
+        console.log(`📁 [ADD-EMPLOYEE] Internal ManagerData record created for ${newUser.employeeId}`);
+      } catch (mdErr) {
+        console.error('⚠️ [ADD-EMPLOYEE] Failed to create ManagerData:', mdErr.message);
+      }
+    }
+
     // If assigned to a manager, update the manager's assignedEmployees array
     if (managerObjectId && managerUser) {
       if (!managerUser.assignedEmployees) managerUser.assignedEmployees = [];
@@ -646,6 +674,22 @@ app.post('/api/employees/add-employee', async (req, res) => {
         managerUser.assignedEmployees.push(newUser._id);
         await managerUser.save();
         console.log(`🔗 [ADD-EMPLOYEE] Linked ${newUser.employeeId} to manager ${managerUser.employeeId}`);
+
+        // Sync with ManagerData collection
+        try {
+          await ManagerData.findOneAndUpdate(
+            { managerId: managerUser.employeeId },
+            { $push: { employees: {
+                employeeId: newUser.employeeId,
+                employeeName: newUser.name,
+                email: newUser.email,
+                role: newUser.role
+            } } },
+            { upsert: true }
+          );
+        } catch (syncErr) {
+          console.error('⚠️ [ADD-EMPLOYEE] Failed to sync ManagerData:', syncErr.message);
+        }
       }
     }
 

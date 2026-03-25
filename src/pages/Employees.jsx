@@ -22,12 +22,78 @@ const getStrength = (pwd) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Shared components for Reset Password Modal
+// ─────────────────────────────────────────────────────────────────────────────
+const Overlay = ({ children }) => (
+  <div style={{
+    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    zIndex: 200, backdropFilter: 'blur(6px)', padding: 20
+  }}>
+    <div style={{
+      background: '#0e1510',
+      border: '1px solid rgba(251,191,36,0.25)',
+      borderRadius: 16,
+      width: '100%', maxWidth: 480,
+      boxShadow: '0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(251,191,36,0.1)',
+      overflow: 'hidden',
+      animation: 'modalPop 0.2s ease'
+    }}>
+      {children}
+    </div>
+  </div>
+);
+
+const ModalHeader = ({ title, subtitle, onClose }) => (
+  <div style={{
+    padding: '20px 24px 16px',
+    borderBottom: '1px solid rgba(251,191,36,0.12)',
+    background: 'rgba(251,191,36,0.04)',
+    display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12
+  }}>
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+        <span style={{ fontSize: 18 }}>🔑</span>
+        <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#fbbf24' }}>{title}</h2>
+      </div>
+      <p style={{ margin: 0, fontSize: 12, color: '#6b7b6b' }}>{subtitle}</p>
+    </div>
+    <LoaderButton
+      onClick={onClose}
+      style={{ background: 'transparent', border: 'none', color: '#6b7b6b', cursor: 'pointer', fontSize: 20, lineHeight: 1, padding: '0 4px' }}
+    >×</LoaderButton>
+  </div>
+);
+
+const EmpBadge = ({ emp }) => (
+  <div style={{
+    display: 'flex', alignItems: 'center', gap: 12,
+    background: 'rgba(255,255,255,0.03)', border: '1px solid #1a2a1a',
+    borderRadius: 10, padding: '12px 16px', marginBottom: 20
+  }}>
+    <div style={{
+      width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+      background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: 14, fontWeight: 800, color: '#000'
+    }}>
+      {(emp.initials || emp.name?.substring(0, 2) || '??').toUpperCase()}
+    </div>
+    <div>
+      <p style={{ margin: 0, fontWeight: 700, color: '#e0f0e0', fontSize: 14 }}>{emp.name}</p>
+      <p style={{ margin: 0, fontSize: 12, color: '#6b7b6b' }}>{emp.id} · {emp.department || 'N/A'}</p>
+    </div>
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Reset Password Modal — 3 stages: form → confirm → done
 // ─────────────────────────────────────────────────────────────────────────────
 const ResetPasswordModal = ({ emp, adminId, onClose }) => {
   const [stage, setStage] = useState('form');  // 'form' | 'confirm' | 'done'
   const [newPassword, setNewPassword] = useState('');
   const [confirmPwd, setConfirmPwd] = useState('');
+  const [empCode, setEmpCode] = useState('');
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState('');
@@ -37,6 +103,8 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
   const strength = getStrength(newPassword);
 
   const validate = () => {
+    if (!empCode) return 'Please enter the employee code to verify.';
+    if (empCode.toUpperCase() !== emp.id.toUpperCase()) return 'Entered employee code does not match.';
     if (!newPassword) return 'Please enter a new password.';
     if (newPassword.length < 6) return 'Password must be at least 6 characters.';
     if (!/[A-Z]/.test(newPassword)) return 'Password must contain at least one uppercase letter.';
@@ -78,78 +146,40 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
     }
   };
 
-  // ── Shared backdrop / card wrapper ──
-  const Overlay = ({ children }) => (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 200, backdropFilter: 'blur(6px)', padding: 20
-    }}>
-      <div style={{
-        background: '#0e1510',
-        border: '1px solid rgba(251,191,36,0.25)',
-        borderRadius: 16,
-        width: '100%', maxWidth: 480,
-        boxShadow: '0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(251,191,36,0.1)',
-        overflow: 'hidden',
-        animation: 'modalPop 0.2s ease'
-      }}>
-        {children}
-      </div>
-    </div>
-  );
 
-  const ModalHeader = ({ title, subtitle }) => (
-    <div style={{
-      padding: '20px 24px 16px',
-      borderBottom: '1px solid rgba(251,191,36,0.12)',
-      background: 'rgba(251,191,36,0.04)',
-      display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12
-    }}>
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <span style={{ fontSize: 18 }}>🔑</span>
-          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#fbbf24' }}>{title}</h2>
-        </div>
-        <p style={{ margin: 0, fontSize: 12, color: '#6b7b6b' }}>{subtitle}</p>
-      </div>
-      <LoaderButton
-        onClick={onClose}
-        style={{ background: 'transparent', border: 'none', color: '#6b7b6b', cursor: 'pointer', fontSize: 20, lineHeight: 1, padding: '0 4px' }}
-      >×</LoaderButton>
-    </div>
-  );
-
-  const EmpBadge = () => (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 12,
-      background: 'rgba(255,255,255,0.03)', border: '1px solid #1a2a1a',
-      borderRadius: 10, padding: '12px 16px', marginBottom: 20
-    }}>
-      <div style={{
-        width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-        background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 14, fontWeight: 800, color: '#000'
-      }}>
-        {(emp.initials || emp.name?.substring(0, 2) || '??').toUpperCase()}
-      </div>
-      <div>
-        <p style={{ margin: 0, fontWeight: 700, color: '#e0f0e0', fontSize: 14 }}>{emp.name}</p>
-        <p style={{ margin: 0, fontSize: 12, color: '#6b7b6b' }}>{emp.id} · {emp.department || 'N/A'}</p>
-      </div>
-    </div>
-  );
 
   // ────────────────────────────── STAGE: FORM ──────────────────────────────
   if (stage === 'form') return (
     <Overlay>
       <ModalHeader
         title="Reset Employee Password"
-        subtitle="Super Admin action — no current password required"
+        subtitle="Super Admin / HR action — no current password required"
+        onClose={onClose}
       />
       <div style={{ padding: '20px 24px 24px' }}>
-        <EmpBadge />
+        <EmpBadge emp={emp} />
+
+        {/* Verify Employee Code */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#6b7b6b', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 6 }}>
+            Verify Employee Code
+          </label>
+          <input
+            type="text"
+            value={empCode}
+            onChange={e => { setEmpCode(e.target.value); setError(''); }}
+            placeholder={`Enter code (e.g. ${emp.id})`}
+            style={{
+              width: '100%', padding: '10px 14px', boxSizing: 'border-box',
+              background: 'rgba(255,255,255,0.04)', border: '1px solid #1a2a1a',
+              borderRadius: 8, color: '#fff', fontSize: 14, fontFamily: 'inherit',
+              outline: 'none', transition: 'border-color 0.2s'
+            }}
+            onFocus={e => e.target.style.borderColor = 'rgba(251,191,36,0.5)'}
+            onBlur={e => e.target.style.borderColor = '#1a2a1a'}
+            autoFocus
+          />
+        </div>
 
         {/* New Password */}
         <div style={{ marginBottom: 16 }}>
@@ -263,9 +293,10 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
       <ModalHeader
         title="Confirm Password Reset"
         subtitle="Please review before proceeding"
+        onClose={onClose}
       />
       <div style={{ padding: '24px 24px' }}>
-        <EmpBadge />
+        <EmpBadge emp={emp} />
 
         {/* Warning banner */}
         <div style={{
@@ -577,17 +608,109 @@ const EditEmployeeModal = ({ emp, onClose, onSave }) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Assign Team Modal
+// ─────────────────────────────────────────────────────────────────────────────
+const AssignTeamModal = ({ employees, onClose, onAssign, adminId }) => {
+  const [selectedManager, setSelectedManager] = useState('');
+  const [selectedEmps, setSelectedEmps] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const managers = employees.filter(e => e.role === 'manager');
+
+  const toggleEmp = (empId) => {
+    if (selectedEmps.includes(empId)) {
+      setSelectedEmps(selectedEmps.filter(id => id !== empId));
+    } else {
+      setSelectedEmps([...selectedEmps, empId]);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!selectedManager) return alert('Select a manager first');
+    if (!selectedEmps.length) return alert('Select at least one employee');
+    
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/managers/${selectedManager}/assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ employeeIds: selectedEmps, callerId: adminId })
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to assign team');
+      }
+      onAssign();
+      onClose();
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 100, backdropFilter: 'blur(4px)', padding: '20px'
+    }}>
+      <div style={{
+        background: '#0e1510', border: '1px solid #1a2a1a',
+        borderRadius: 8, width: 600, maxHeight: '90vh', display: 'flex', flexDirection: 'column',
+        boxShadow: '0 10px 25px rgba(0,0,0,0.5)', overflow: 'hidden'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #1a2a1a', background: '#0e1510' }}>
+          <h2 style={{ fontSize: 18, fontWeight: 600, color: '#e0f0e0', margin: 0 }}>Assign Team</h2>
+          <LoaderButton onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#6b7b6b', cursor: 'pointer', fontSize: 24, lineHeight: 1 }}>×</LoaderButton>
+        </div>
+
+        <div style={{ padding: '24px', overflowY: 'auto', flex: 1, color: '#e0f0e0' }}>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#6b7b6b', fontWeight: 500 }}>Select Manager</label>
+            <select value={selectedManager} onChange={(e) => setSelectedManager(e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #1a2a1a', borderRadius: 6, outline: 'none', background: '#080c08', color: '#e0f0e0' }}>
+              <option value="">-- Choose Manager --</option>
+              {managers.map(m => <option key={m.id} value={m.id}>{m.name} ({m.id})</option>)}
+            </select>
+          </div>
+          
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#6b7b6b', fontWeight: 500 }}>Select Employees to Assign</label>
+            <div style={{ background: '#080c08', border: '1px solid #1a2a1a', borderRadius: 6, padding: '10px', maxHeight: 300, overflowY: 'auto' }}>
+              {employees.filter(e => e.id !== selectedManager && e.status === 'Active').map(e => (
+                <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 4px', borderBottom: '1px solid #1a2a1a' }}>
+                  <input type="checkbox" checked={selectedEmps.includes(e.id)} onChange={() => toggleEmp(e.id)} style={{ width: 16, height: 16, cursor: 'pointer' }} />
+                  <span style={{ fontSize: 14 }}>{e.name} <span style={{ color: '#6b7b6b', fontSize: 12 }}>({e.id}) - {e.role || 'employee'}</span></span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, padding: '16px 24px', borderTop: '1px solid #1a2a1a', background: '#0e1510' }}>
+          <LoaderButton onClick={onClose} style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', padding: '8px 16px', borderRadius: 6, fontWeight: 500, cursor: 'pointer' }}>Cancel</LoaderButton>
+          <LoaderButton onClick={handleSave} loading={loading} style={{ background: '#76c733', color: '#0e1510', border: 'none', padding: '8px 16px', borderRadius: 6, fontWeight: 700, cursor: 'pointer' }}>Save Assignment</LoaderButton>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Employees Page
 // ─────────────────────────────────────────────────────────────────────────────
 const Employees = () => {
   const navigate = useNavigate();
-  const { updateEmployee } = useEmployee();
+  const { updateEmployee, employees, refreshEmployees } = useEmployee();
   const { user } = useUser();
 
   const [selectedEmp, setSelectedEmp] = useState(null);
   const [editingEmp, setEditingEmp] = useState(null);
   const [resetPwEmp, setResetPwEmp] = useState(null);
+  const [showAssignTeam, setShowAssignTeam] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState('Data has been saved in the database successfully.');
 
   const handleSaveEdit = async (form) => {
     if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) {
@@ -615,9 +738,16 @@ const Employees = () => {
     });
 
     if (success) {
+      setToastMsg('Data has been saved in the database successfully.');
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     }
+  };
+
+  const handleAssignSuccess = () => {
+    setToastMsg('Team assigned and synced successfully!');
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
   };
 
   return (
@@ -631,11 +761,23 @@ const Employees = () => {
               <h1 className="page-title">Admin Control</h1>
               <p className="page-subtitle">Manage and track all organisation employees</p>
             </div>
-            {(user?.role === 'superadmin' || user?.role === 'manager' || user?.role === 'hr') && (
-              <LoaderButton className="btn-primary" onClick={() => navigate('/add-employee')}>
-                ➕ Add Employee
-              </LoaderButton>
-            )}
+            <div style={{ display: 'flex', gap: 12 }}>
+              {(user?.role === 'manager' || user?.role === 'hr') && (
+                <LoaderButton className="btn-primary" onClick={() => navigate('/add-employee')}>
+                  ➕ Add Employee
+                </LoaderButton>
+              )}
+              {user?.role === 'hr' && (
+                <>
+                  <LoaderButton style={{ background: '#76c733', color: '#000', border: 'none', borderRadius: 6, padding: '10px 16px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => navigate('/add-employee')}>
+                    👔 Add Manager
+                  </LoaderButton>
+                  <LoaderButton style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: 6, padding: '10px 16px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setShowAssignTeam(true)}>
+                    👥 Assign Team (Employees)
+                  </LoaderButton>
+                </>
+              )}
+            </div>
           </div>
 
           <EmployeeTable
@@ -667,8 +809,21 @@ const Employees = () => {
       {resetPwEmp && (
         <ResetPasswordModal
           emp={resetPwEmp}
-          adminId={user?.id}
+          adminId={user?.employeeId || user?.id}
           onClose={() => setResetPwEmp(null)}
+        />
+      )}
+
+      {/* Assign Team Modal */}
+      {showAssignTeam && (
+        <AssignTeamModal
+          employees={employees || []}
+          adminId={user?.employeeId || user?.id}
+          onClose={() => setShowAssignTeam(false)}
+          onAssign={() => {
+            handleAssignSuccess();
+            if (refreshEmployees) refreshEmployees();
+          }}
         />
       )}
 
@@ -680,7 +835,7 @@ const Employees = () => {
           borderRadius: 8, fontWeight: 700, boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
           animation: 'modalPop 0.3s ease'
         }}>
-          ✅ Data has been saved in the database successfully.
+          {toastMsg}
         </div>
       )}
     </div>

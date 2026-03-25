@@ -51,14 +51,7 @@ const Settings = () => {
   const [pwError, setPwError] = useState('');
   const [pwSuccess, setPwSuccess] = useState('');
 
-  // ── Super Admin Reset Employee state ──
-  const [adminPwForm, setAdminPwForm] = useState({
-    targetEmployeeId: '',
-    newPassword: '',
-  });
-  const [adminPwLoading, setAdminPwLoading] = useState(false);
-  const [adminPwError, setAdminPwError] = useState('');
-  const [adminPwSuccess, setAdminPwSuccess] = useState('');
+
 
   const showNotification = (msg, type = 'success') => {
     setToastMsg(msg);
@@ -132,7 +125,7 @@ const Settings = () => {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          employeeId: user?.id,
+          employeeId: user?.employeeId || user?.id,
           currentPassword,
           newPassword,
         }),
@@ -153,47 +146,9 @@ const Settings = () => {
     }
   };
 
-  // ── Super Admin Reset Employee Password handler ──
-  const handleAdminPasswordReset = async (e) => {
-    e.preventDefault();
-    setAdminPwError('');
-    setAdminPwSuccess('');
 
-    const { targetEmployeeId, newPassword } = adminPwForm;
-
-    if (!targetEmployeeId) { setAdminPwError('Please enter the target Employee ID.'); return; }
-    if (newPassword.length < 6) { setAdminPwError('New password must be at least 6 characters.'); return; }
-
-    setAdminPwLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/auth/admin-reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          adminEmployeeId: user?.id,
-          targetEmployeeId,
-          newPassword,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setAdminPwError(data.message || 'Password reset failed.');
-      } else {
-        setAdminPwSuccess(data.message);
-        setAdminPwForm({ targetEmployeeId: '', newPassword: '' });
-        showNotification(data.message);
-      }
-    } catch (err) {
-      setAdminPwError('Network error. Please try again.');
-    } finally {
-      setAdminPwLoading(false);
-    }
-  };
 
   const ownStrength = getStrength(pwForm.newPassword);
-  const adminStrength = getStrength(adminPwForm.newPassword);
 
   return (
     <div className="admin-layout">
@@ -336,69 +291,7 @@ const Settings = () => {
               </form>
             </div>
 
-            {/* ── Super Admin: Reset Employee Password ── */}
-            {isSuperAdmin && (
-              <div className="form-card" style={{ gridColumn: '1 / -1', border: '1px solid rgba(251,191,36,0.2)', background: 'rgba(251,191,36,0.03)' }}>
-                <div className="settings-section-title" style={{ color: '#fbbf24' }}>
-                  👑 Super Admin — Reset Employee Password
-                </div>
-                <p style={{ fontSize: 13, color: '#888', marginBottom: 20 }}>
-                  As a Super Admin, you can directly assign a new password to any employee. No current password is required.
-                </p>
-                <form >
-                  <div className="form-grid">
-                    <div className="form-group">
-                      <label className="form-label">Target Employee ID</label>
-                      <input
-                        id="admin-target-employee-id"
-                        className="form-input"
-                        type="text"
-                        placeholder="e.g. QBL-E0021"
-                        value={adminPwForm.targetEmployeeId}
-                        onChange={e => setAdminPwForm(f => ({ ...f, targetEmployeeId: e.target.value }))}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">New Password</label>
-                      <input
-                        id="admin-new-employee-password"
-                        className="form-input"
-                        type="password"
-                        placeholder="Min. 6 characters"
-                        value={adminPwForm.newPassword}
-                        onChange={e => setAdminPwForm(f => ({ ...f, newPassword: e.target.value }))}
-                        required
-                      />
-                      {adminPwForm.newPassword && adminStrength && (
-                        <div style={{ marginTop: 6 }}>
-                          <div style={{ height: 4, borderRadius: 4, background: '#222', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${adminStrength.pct}%`, background: adminStrength.color, transition: 'width 0.3s, background 0.3s', borderRadius: 4 }} />
-                          </div>
-                          <span style={{ fontSize: 11, color: adminStrength.color }}>{adminStrength.label}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
 
-                  {adminPwError   && (
-                    <div style={{ color: '#f87171', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 10, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>
-                      ⚠️ {adminPwError}
-                    </div>
-                  )}
-                  {adminPwSuccess && (
-                    <div style={{ color: '#4ade80', background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)', borderRadius: 10, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>
-                      ✅ {adminPwSuccess}
-                    </div>
-                  )}
-
-                  <LoaderButton onClick={handleAdminPasswordReset} type="submit" className="btn-primary" disabled={adminPwLoading}
-                    style={{ background: '#fbbf24', color: '#000' }}>
-                    {adminPwLoading ? '⏳ Resetting…' : '👑 Reset Employee Password'}
-                  </LoaderButton>
-                </form>
-              </div>
-            )}
 
             {/* ── Notifications ── */}
             <div className="form-card">

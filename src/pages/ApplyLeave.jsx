@@ -100,7 +100,7 @@ const ApplyLeave = () => {
               background: 'rgba(118,199,51,0.08)', border: '1px solid rgba(118,199,51,0.2)',
               borderRadius: 10, padding: '8px 16px', fontSize: 13, color: '#76c733', fontWeight: 600,
             }}>
-              🛡️ Super Admin Mode
+              🛡️ HR Mode
             </div>
           </div>
 
@@ -286,10 +286,10 @@ const ApplyLeave = () => {
                 borderRadius: 12, padding: '14px 16px',
               }}>
                 <p style={{ fontSize: 12, color: '#f59e0b', margin: 0, fontWeight: 600, marginBottom: 6 }}>
-                  ⚠️ Super Admin Notice
+                  ⚠️ HR Notice
                 </p>
                 <p style={{ fontSize: 12, color: '#a08050', margin: 0, lineHeight: 1.6 }}>
-                  You are applying leave on behalf of an employee. The leave status will be set to <strong style={{ color: '#f59e0b' }}>Pending</strong> and can be approved via Manage Leaves.
+                  You are applying leave on behalf of an employee. The leave status will be set to <strong style={{ color: '#f59e0b' }}>Pending</strong> and can be approved by Super Admin.
                 </p>
               </div>
             </div>

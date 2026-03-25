@@ -23,7 +23,7 @@ const AboutCompany = () => {
             <div className="form-card" style={{ gridColumn: '1 / -1' }}>
               <div className="settings-section-title">🏢 About Us</div>
               <p style={{ color: '#a3b5a3', lineHeight: '1.6', fontSize: '15px' }}>
-                Quisitive Businesses is an IT services and data center solutions company that provides advanced technology solutions to help businesses run smoothly. The company focuses on secure, reliable, and scalable infrastructure to ensure data safety and high performance.
+                At QUISITIVE BUSINESSES , we offer end-to-end all IT solutions & managed services to keep your business running smoothly. Our facility combines advanced technology with top-tier security and reliability to ensure your data is always safe and accessible.
               </p>
             </div>
 
@@ -46,9 +46,9 @@ const AboutCompany = () => {
             {/* Services Section */}
             <div className="form-card" style={{ gridColumn: '1 / -1' }}>
               <div className="settings-section-title">🛠️ Our Services</div>
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                 gap: '12px',
                 marginTop: '10px'
               }}>
