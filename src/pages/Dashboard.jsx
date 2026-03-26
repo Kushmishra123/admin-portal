@@ -9,6 +9,7 @@ import Chat from '../components/Chat';
 import { io } from 'socket.io-client';
 import { API_BASE_URL } from '../config';
 import Confetti from 'react-confetti';
+import { X } from 'lucide-react';
 import '../styles/dashboard.css';
 import LoaderButton from '../components/LoaderButton';
 
@@ -48,7 +49,7 @@ const CalendarModal = ({ isOpen, onClose }) => {
           background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
           borderRadius: 8, color: '#f87171', width: 32, height: 32,
           cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}></LoaderButton>
+        }}><X size={18} /></LoaderButton>
 
         <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: 0, marginBottom: 24 }}>Calendar</h2>
 
@@ -208,7 +209,7 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
           position: 'absolute', top: 20, right: 20,
           background: '#1a2a1a', padding: '10px',
           borderRadius: '12px', fontSize: '22px'
-        }}></div>
+        }}>🎂</div>
 
         <p className="card-title">TEAM CELEBRATIONS</p>
 
@@ -316,7 +317,7 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
               zIndex: 1,
               willChange: 'transform'
             }}>
-              {['', '', '', ''][Math.floor(Math.random() * 4)]}
+              {['🎈', '✨', '🎁', '🎊'][Math.floor(Math.random() * 4)]}
             </div>
           ))}
 
@@ -348,9 +349,9 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.8)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.1)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#d0e0d0'; e.currentTarget.style.transform = 'scale(1)'; }}
               title="Close"
-            ></LoaderButton>
+            ><X size={24} /></LoaderButton>
 
-            <div style={{ fontSize: 90, marginBottom: 20, animation: 'themeCakeBounce 2s infinite', willChange: 'transform' }}></div>
+            <div style={{ fontSize: 90, marginBottom: 20, animation: 'themeCakeBounce 2s infinite', willChange: 'transform' }}>🎂</div>
             <h2 style={{
               fontSize: 42, fontWeight: 900, color: '#fff', margin: 0, marginBottom: 20,
               background: 'linear-gradient(90deg, #76c733, #a9df7c, #76c733)',
@@ -358,13 +359,13 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
               animation: 'themeTextShine 3s linear infinite'
             }}>
-               Happy Birthday! 
+               🎉 Happy Birthday! 🎉
             </h2>
             <p style={{ fontSize: 32, color: '#f0fdf4', fontWeight: 800, marginBottom: 24, textShadow: '0 2px 10px rgba(118, 199, 51, 0.4)' }}>
               {user?.name}!
             </p>
             <p style={{ fontSize: 18, color: '#d0e0d0', lineHeight: 1.7, marginBottom: 40, fontWeight: 500 }}>
-              Wish you a great year ahead!<br /> May your day be filled with joy, success, and lots of amazing celebrations! 
+              Wish you a great year ahead!<br /> May your day be filled with joy, success, and lots of amazing celebrations! 🥂✨
             </p>
 
             <LoaderButton onClick={() => setShowPopup(false)} style={{
@@ -384,7 +385,7 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
                 e.currentTarget.style.boxShadow = '0 10px 25px rgba(118, 199, 51, 0.3)';
               }}
             >
-              Start Celebrating! 
+              Start Celebrating! 🎊
             </LoaderButton>
           </div>
           <style>{`
@@ -454,7 +455,7 @@ const Dashboard = () => {
 
   // ── Global Socket Connection ──
   React.useEffect(() => {
-    if (user && (user.role === 'admin' || user.role === 'superadmin')) {
+    if (user && (user.role === 'admin' || user.role === 'superadmin' || user.role === 'hr')) {
       const currentUserId = user.employeeId || user.id;
       const newSocket = io(API_BASE_URL, {
         query: { employeeId: currentUserId },
@@ -657,8 +658,8 @@ const Dashboard = () => {
       </div>
       <CalendarModal isOpen={showCalendar} onClose={() => setShowCalendar(false)} />
 
-      {/* Floating Chat Button for Admin and Superadmin */}
-      {(user?.role === 'admin' || user?.role === 'superadmin') && (
+      {/* Floating Chat Button for Admin, Superadmin, and HR */}
+      {(user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'hr') && (
         <div style={{
           position: 'fixed', bottom: 32, right: 32,
           zIndex: 90,

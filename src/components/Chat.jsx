@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { API_URL } from '../config';
 import { useUser } from '../context/UserContext';
+import { X } from 'lucide-react';
 import '../styles/chat.css';
 
 const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wishTarget, wishMessage, setWishMessage }) => {
@@ -146,7 +147,7 @@ const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wis
 
   const currentUserId = user ? (user.employeeId || user.id) : null;
   const chatableUsers = chatUsers.filter(emp =>
-    emp.id !== currentUserId && (emp.role === 'admin' || emp.role === 'superadmin')
+    emp.id !== currentUserId && (emp.role === 'admin' || emp.role === 'superadmin' || emp.role === 'hr')
   );
 
   return (
@@ -157,7 +158,7 @@ const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wis
         <div className={`chat-sidebar ${selectedUser ? 'hidden-on-mobile' : ''}`}>
           <div className="chat-sidebar-header">
             <h3 className="chat-sidebar-title">Chats</h3>
-            <button onClick={onClose} className="chat-close-btn" title="Close chat"></button>
+            <button onClick={onClose} className="chat-close-btn" title="Close chat"><X size={20} /></button>
           </div>
 
           <div className="chat-user-list">

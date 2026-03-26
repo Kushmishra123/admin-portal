@@ -8,6 +8,7 @@ import { useUser } from '../context/UserContext';
 import { API_URL } from '../config';
 import '../styles/dashboard.css';
 import LoaderButton from '../components/LoaderButton';
+import { X } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Password strength helper
@@ -60,8 +61,8 @@ const ModalHeader = ({ title, subtitle, onClose }) => (
     </div>
     <LoaderButton
       onClick={onClose}
-      style={{ background: 'transparent', border: 'none', color: '#6b7b6b', cursor: 'pointer', fontSize: 20, lineHeight: 1, padding: '0 4px' }}
-    >×</LoaderButton>
+      style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32 }}
+    ><X size={18} /></LoaderButton>
   </div>
 );
 
@@ -437,9 +438,8 @@ const EmployeeDetailModal = ({ emp, onClose }) => {
              {emp.id} - {emp.name} (Year {currentYear})
           </div>
           <LoaderButton onClick={onClose} style={{
-            background: 'transparent', border: 'none', color: '#60a5fa',
-            cursor: 'pointer', fontSize: 16, fontWeight: 'bold'
-          }}></LoaderButton>
+            background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32
+          }}><X size={18} /></LoaderButton>
         </div>
         {/* Body */}
         <div style={{ padding: '16px', display: 'flex', flexWrap: 'wrap', gap: '16px', background: '#0e1510' }}>
@@ -518,7 +518,7 @@ const EditEmployeeModal = ({ emp, onClose, onSave }) => {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #1a2a1a', background: '#0e1510' }}>
           <h2 style={{ fontSize: 18, fontWeight: 600, color: '#e0f0e0', margin: 0 }}>Edit Employee — {emp.name}</h2>
-          <LoaderButton onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#6b7b6b', cursor: 'pointer', fontSize: 24, lineHeight: 1 }}>×</LoaderButton>
+          <LoaderButton onClick={onClose} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32 }}><X size={18} /></LoaderButton>
         </div>
 
         {/* Body */}
@@ -689,7 +689,7 @@ const AssignTeamModal = ({ employees, onClose, onAssign, adminId }) => {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #1a2a1a', background: '#0e1510' }}>
           <h2 style={{ fontSize: 18, fontWeight: 600, color: '#e0f0e0', margin: 0 }}>Assign Team</h2>
-          <LoaderButton onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#6b7b6b', cursor: 'pointer', fontSize: 24, lineHeight: 1 }}>×</LoaderButton>
+          <LoaderButton onClick={onClose} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32 }}><X size={18} /></LoaderButton>
         </div>
 
         <div style={{ padding: '24px', overflowY: 'auto', flex: 1, color: '#e0f0e0' }}>

@@ -83,12 +83,8 @@ const Sidebar = () => {
       </LoaderButton>
 
       {/* Brand */}
-      <div className="sidebar-brand">
-        <img src={logo} alt="QB Logo" style={{ width: 42, height: 'auto', borderRadius: 10 }} />
-        <div className="brand-text">
-          <h2 className="brand-name">Quisitive Business</h2>
-          <p className="brand-sub">Employee Portal</p>
-        </div>
+      <div className="sidebar-brand" style={{ justifyContent: 'center' }}>
+        <img src={logo} alt="QB Logo" style={{ width: '100%', maxWidth: '180px', height: 'auto' }} />
       </div>
 
       {/* Section label */}
