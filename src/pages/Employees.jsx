@@ -53,7 +53,7 @@ const ModalHeader = ({ title, subtitle, onClose }) => (
   }}>
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        <span style={{ fontSize: 18 }}>🔑</span>
+        <span style={{ fontSize: 18 }}></span>
         <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#fbbf24' }}>{title}</h2>
       </div>
       <p style={{ margin: 0, fontSize: 12, color: '#6b7b6b' }}>{subtitle}</p>
@@ -206,7 +206,7 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
               type="button"
               onClick={() => setShowNew(v => !v)}
               style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6b7b6b', cursor: 'pointer', fontSize: 15 }}
-            >{showNew ? '🙈' : '👁'}</LoaderButton>
+            >{showNew ? '' : ''}</LoaderButton>
           </div>
           {/* Strength bar */}
           {newPassword && strength && (
@@ -244,11 +244,11 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
               type="button"
               onClick={() => setShowConfirm(v => !v)}
               style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6b7b6b', cursor: 'pointer', fontSize: 15 }}
-            >{showConfirm ? '🙈' : '👁'}</LoaderButton>
+            >{showConfirm ? '' : ''}</LoaderButton>
           </div>
           {confirmPwd && newPassword && (
             <span style={{ fontSize: 11, color: confirmPwd === newPassword ? '#4ade80' : '#f87171', marginTop: 4, display: 'block' }}>
-              {confirmPwd === newPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
+              {confirmPwd === newPassword ? ' Passwords match' : ' Passwords do not match'}
             </span>
           )}
         </div>
@@ -256,15 +256,15 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
         {/* Validation rules hint */}
         <div style={{ padding: '10px 14px', background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.12)', borderRadius: 8, marginBottom: 20, fontSize: 11, color: '#6b7b6b', lineHeight: 1.6 }}>
           <p style={{ margin: '0 0 4px', color: '#fbbf24', fontWeight: 600 }}>Password Requirements</p>
-          <span style={{ color: newPassword.length >= 6 ? '#4ade80' : '#6b7b6b' }}>✓ Minimum 6 characters&nbsp;&nbsp;</span>
-          <span style={{ color: /[A-Z]/.test(newPassword) ? '#4ade80' : '#6b7b6b' }}>✓ One uppercase letter&nbsp;&nbsp;</span>
-          <span style={{ color: /[0-9]/.test(newPassword) ? '#4ade80' : '#6b7b6b' }}>✓ One number</span>
+          <span style={{ color: newPassword.length >= 6 ? '#4ade80' : '#6b7b6b' }}> Minimum 6 characters&nbsp;&nbsp;</span>
+          <span style={{ color: /[A-Z]/.test(newPassword) ? '#4ade80' : '#6b7b6b' }}> One uppercase letter&nbsp;&nbsp;</span>
+          <span style={{ color: /[0-9]/.test(newPassword) ? '#4ade80' : '#6b7b6b' }}> One number</span>
         </div>
 
         {/* Error */}
         {error && (
           <div style={{ color: '#f87171', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>
-            ⚠️ {error}
+             {error}
           </div>
         )}
 
@@ -280,7 +280,7 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
             onClick={handleProceed}
             style={{ flex: 2, padding: '10px', background: '#fbbf24', border: 'none', borderRadius: 8, color: '#000', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
           >
-            🔑 Continue to Confirm
+             Continue to Confirm
           </LoaderButton>
         </div>
       </div>
@@ -303,7 +303,7 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
           background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)',
           borderRadius: 10, padding: '14px 16px', marginBottom: 20
         }}>
-          <p style={{ margin: '0 0 4px', fontWeight: 700, color: '#fca5a5', fontSize: 14 }}>⚠️ Are you sure?</p>
+          <p style={{ margin: '0 0 4px', fontWeight: 700, color: '#fca5a5', fontSize: 14 }}> Are you sure?</p>
           <p style={{ margin: 0, fontSize: 12, color: '#6b7b6b', lineHeight: 1.5 }}>
             You are about to reset the password for <strong style={{ color: '#e0f0e0' }}>{emp.name}</strong> ({emp.id}).
             This action cannot be undone and the employee will need to use the new password to log in.
@@ -328,7 +328,7 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
 
         {error && (
           <div style={{ color: '#f87171', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>
-            ⚠️ {error}
+             {error}
           </div>
         )}
 
@@ -344,7 +344,7 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
             disabled={loading}
             style={{ flex: 2, padding: '10px', background: loading ? '#555' : '#ef4444', border: 'none', borderRadius: 8, color: '#fff', fontSize: 14, fontWeight: 700, cursor: loading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
           >
-            {loading ? '⏳ Resetting…' : '✅ Yes, Reset Password'}
+            {loading ? '⏳ Resetting…' : ' Yes, Reset Password'}
           </LoaderButton>
         </div>
       </div>
@@ -360,7 +360,7 @@ const ResetPasswordModal = ({ emp, adminId, onClose }) => {
           width: 72, height: 72, borderRadius: '50%', margin: '0 auto 20px',
           background: 'rgba(74,222,128,0.12)', border: '2px solid rgba(74,222,128,0.4)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32
-        }}>✅</div>
+        }}></div>
         <h2 style={{ margin: '0 0 8px', color: '#4ade80', fontSize: 20, fontWeight: 800 }}>Password Reset!</h2>
         <p style={{ margin: '0 0 24px', color: '#6b7b6b', fontSize: 13 }}>
           {successData?.message}
@@ -434,12 +434,12 @@ const EmployeeDetailModal = ({ emp, onClose }) => {
           borderBottom: '1px solid rgba(59, 130, 246, 0.2)'
         }}>
           <div style={{ color: '#60a5fa', fontSize: 14, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
-            📊 {emp.id} - {emp.name} (Year {currentYear})
+             {emp.id} - {emp.name} (Year {currentYear})
           </div>
           <LoaderButton onClick={onClose} style={{
             background: 'transparent', border: 'none', color: '#60a5fa',
             cursor: 'pointer', fontSize: 16, fontWeight: 'bold'
-          }}>✕</LoaderButton>
+          }}></LoaderButton>
         </div>
         {/* Body */}
         <div style={{ padding: '16px', display: 'flex', flexWrap: 'wrap', gap: '16px', background: '#0e1510' }}>
@@ -458,11 +458,11 @@ const EmployeeDetailModal = ({ emp, onClose }) => {
             ))}
           </div>
           <div style={{ flex: 1, background: '#080c08', padding: '20px', borderRadius: '6px', border: '1px solid #1a2a1a' }}>
-            <h4 style={{ color: '#60a5fa', fontSize: 14, fontWeight: 600, margin: '0 0 12px 0' }}>🎯 KRA</h4>
+            <h4 style={{ color: '#60a5fa', fontSize: 14, fontWeight: 600, margin: '0 0 12px 0' }}> KRA</h4>
             <p style={{ color: '#a0b0a0', fontSize: 14, margin: 0, fontStyle: 'italic' }}>{emp.kra || 'Not set'}</p>
           </div>
           <div style={{ flex: 1, background: '#080c08', padding: '20px', borderRadius: '6px', border: '1px solid #1a2a1a' }}>
-            <h4 style={{ color: '#10b981', fontSize: 14, fontWeight: 600, margin: '0 0 12px 0' }}>📈 KPA</h4>
+            <h4 style={{ color: '#10b981', fontSize: 14, fontWeight: 600, margin: '0 0 12px 0' }}> KPA</h4>
             <p style={{ color: '#a0b0a0', fontSize: 14, margin: 0, fontStyle: 'italic' }}>{emp.kpa || 'Not set'}</p>
           </div>
         </div>
@@ -584,11 +584,11 @@ const EditEmployeeModal = ({ emp, onClose, onSave }) => {
               <input type="time" value={form.end} onChange={e => handleChange('end', e.target.value)} style={inputStyle} /></div>
           </div>
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 14, color: '#6b7b6b', fontWeight: 500 }}>🎯 KRA</label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 14, color: '#6b7b6b', fontWeight: 500 }}> KRA</label>
             <textarea rows={2} value={form.kra} onChange={e => handleChange('kra', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} />
           </div>
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 14, color: '#6b7b6b', fontWeight: 500 }}>📈 KPA</label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 14, color: '#6b7b6b', fontWeight: 500 }}> KPA</label>
             <textarea rows={3} value={form.kpa} onChange={e => handleChange('kpa', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} />
           </div>
         </div>
@@ -617,6 +617,19 @@ const AssignTeamModal = ({ employees, onClose, onAssign, adminId }) => {
 
   const managers = employees.filter(e => e.role === 'manager');
 
+  // When manager changes, pre-select employees already in their team
+  const handleManagerChange = (managerId) => {
+    setSelectedManager(managerId);
+    if (managerId) {
+      const alreadyAssigned = employees
+        .filter(e => e.managerEmployeeId === managerId)
+        .map(e => e.id);
+      setSelectedEmps(alreadyAssigned);
+    } else {
+      setSelectedEmps([]);
+    }
+  };
+
   const toggleEmp = (empId) => {
     if (selectedEmps.includes(empId)) {
       setSelectedEmps(selectedEmps.filter(id => id !== empId));
@@ -624,6 +637,19 @@ const AssignTeamModal = ({ employees, onClose, onAssign, adminId }) => {
       setSelectedEmps([...selectedEmps, empId]);
     }
   };
+
+  // Show: unassigned employees + employees already on this manager's team
+  // Hide: employees assigned to a DIFFERENT manager
+  const availableEmployees = employees.filter(e =>
+    e.id !== selectedManager &&
+    e.status === 'Active' &&
+    e.role !== 'manager' &&
+    e.role !== 'superadmin' &&
+    (
+      !e.managerEmployeeId ||                          // unassigned
+      e.managerEmployeeId === selectedManager           // already on this manager's team
+    )
+  );
 
   const handleSave = async () => {
     if (!selectedManager) return alert('Select a manager first');
@@ -669,22 +695,50 @@ const AssignTeamModal = ({ employees, onClose, onAssign, adminId }) => {
         <div style={{ padding: '24px', overflowY: 'auto', flex: 1, color: '#e0f0e0' }}>
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#6b7b6b', fontWeight: 500 }}>Select Manager</label>
-            <select value={selectedManager} onChange={(e) => setSelectedManager(e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #1a2a1a', borderRadius: 6, outline: 'none', background: '#080c08', color: '#e0f0e0' }}>
+            <select value={selectedManager} onChange={(e) => handleManagerChange(e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #1a2a1a', borderRadius: 6, outline: 'none', background: '#080c08', color: '#e0f0e0' }}>
               <option value="">-- Choose Manager --</option>
               {managers.map(m => <option key={m.id} value={m.id}>{m.name} ({m.id})</option>)}
             </select>
           </div>
           
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#6b7b6b', fontWeight: 500 }}>Select Employees to Assign</label>
-            <div style={{ background: '#080c08', border: '1px solid #1a2a1a', borderRadius: 6, padding: '10px', maxHeight: 300, overflowY: 'auto' }}>
-              {employees.filter(e => e.id !== selectedManager && e.status === 'Active').map(e => (
-                <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 4px', borderBottom: '1px solid #1a2a1a' }}>
-                  <input type="checkbox" checked={selectedEmps.includes(e.id)} onChange={() => toggleEmp(e.id)} style={{ width: 16, height: 16, cursor: 'pointer' }} />
-                  <span style={{ fontSize: 14 }}>{e.name} <span style={{ color: '#6b7b6b', fontSize: 12 }}>({e.id}) - {e.role || 'employee'}</span></span>
-                </div>
-              ))}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <label style={{ fontSize: 14, color: '#6b7b6b', fontWeight: 500 }}>Select Employees to Assign</label>
+              {selectedManager && (
+                <span style={{ fontSize: 11, color: '#4a5b4a' }}>
+                  {availableEmployees.length} available · {selectedEmps.length} selected
+                </span>
+              )}
             </div>
+            {!selectedManager ? (
+              <div style={{ background: '#080c08', border: '1px solid #1a2a1a', borderRadius: 6, padding: '24px', textAlign: 'center', color: '#4a5b4a', fontSize: 13 }}>
+                 Select a manager first to see available employees
+              </div>
+            ) : availableEmployees.length === 0 ? (
+              <div style={{ background: '#080c08', border: '1px solid #1a2a1a', borderRadius: 6, padding: '24px', textAlign: 'center', color: '#4a5b4a', fontSize: 13 }}>
+                No unassigned employees available
+              </div>
+            ) : (
+              <div style={{ background: '#080c08', border: '1px solid #1a2a1a', borderRadius: 6, padding: '10px', maxHeight: 300, overflowY: 'auto' }}>
+                {availableEmployees.map(e => {
+                  const isCurrentTeam = e.managerEmployeeId === selectedManager;
+                  return (
+                    <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 4px', borderBottom: '1px solid #1a2a1a' }}>
+                      <input type="checkbox" checked={selectedEmps.includes(e.id)} onChange={() => toggleEmp(e.id)} style={{ width: 16, height: 16, cursor: 'pointer' }} />
+                      <span style={{ fontSize: 14, flex: 1 }}>
+                        {e.name}
+                        <span style={{ color: '#6b7b6b', fontSize: 12 }}> ({e.id})</span>
+                        {isCurrentTeam && (
+                          <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: '#76c733', background: 'rgba(118,199,51,0.12)', border: '1px solid rgba(118,199,51,0.3)', borderRadius: 10, padding: '1px 6px' }}>
+                            current team
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
@@ -696,6 +750,7 @@ const AssignTeamModal = ({ employees, onClose, onAssign, adminId }) => {
     </div>
   );
 };
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Employees Page
@@ -764,16 +819,19 @@ const Employees = () => {
             <div style={{ display: 'flex', gap: 12 }}>
               {(user?.role === 'manager' || user?.role === 'hr') && (
                 <LoaderButton className="btn-primary" onClick={() => navigate('/add-employee')}>
-                  ➕ Add Employee
+                   Add Employee
                 </LoaderButton>
               )}
               {user?.role === 'hr' && (
                 <>
                   <LoaderButton style={{ background: '#76c733', color: '#000', border: 'none', borderRadius: 6, padding: '10px 16px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => navigate('/add-employee')}>
-                    👔 Add Manager
+                     Add Manager
+                  </LoaderButton>
+                  <LoaderButton style={{ background: '#f59e0b', color: '#000', border: 'none', borderRadius: 6, padding: '10px 16px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => navigate('/add-employee')}>
+                     Add Super Admin
                   </LoaderButton>
                   <LoaderButton style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: 6, padding: '10px 16px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setShowAssignTeam(true)}>
-                    👥 Assign Team (Employees)
+                     Assign Team (Employees)
                   </LoaderButton>
                 </>
               )}

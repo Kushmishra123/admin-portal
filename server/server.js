@@ -475,12 +475,59 @@ const EmployeeDetail = require('./models/EmployeeDetail');
 const EmployeeLeave = require('./models/EmployeeLeave');
 const ManagerData = require('./models/ManagerData');
 
-// ─── ADD EMPLOYEE ROUTE ───────────────────────────────────────────────────────
-// Saves to TWO tables:
-//   1. users          → employeeId, name, email, password (hashed), role, initials
-//   2. employeedetails → everything else, linked to users via userId
+// ─── RECONCILE MANAGER DATA ───────────────────────────────────────────────────
+// Removes orphaned employee entries from managerdatas and stale manager entries.
+// Called automatically on every GET /api/employees and on-demand via /api/admin/sync-db
+async function reconcileManagerData() {
+  try {
+    const allManagerDocs = await ManagerData.find({});
+    for (const mdoc of allManagerDocs) {
+      // 1. Check if this manager still exists and is still a manager
+      const managerUser = await User.findOne({ employeeId: mdoc.managerId });
+      if (!managerUser || normalizeRole(managerUser.role) !== 'manager') {
+        await ManagerData.deleteOne({ _id: mdoc._id });
+        console.log(`🧹 [SYNC] Removed stale ManagerData entry for ${mdoc.managerId} (no longer a manager or deleted)`);
+        continue;
+      }
 
-// ─── ASSIGN EMPLOYEES TO MANAGER ─────────────────────────────────────────────
+      // 2. Filter out employees who no longer exist or belong to another manager
+      const validEmployees = [];
+      for (const emp of mdoc.employees) {
+        const exists = await User.findOne({ employeeId: emp.employeeId });
+        // Employee must exist AND have this manager as their managerId
+        if (exists && exists.managerId && exists.managerId.toString() === managerUser._id.toString()) {
+          validEmployees.push(emp);
+        } else {
+          console.log(`🧹 [SYNC] Removing reassigned or orphaned employee ${emp.employeeId} from manager ${mdoc.managerId}'s ManagerData`);
+        }
+      }
+
+      if (validEmployees.length !== mdoc.employees.length) {
+        // ✅ Use updateOne with $set to bypass Mongoose validation on stale docs
+        // that may have missing required fields (e.g. managerName) in MongoDB.
+        await ManagerData.updateOne(
+          { _id: mdoc._id },
+          { $set: {
+            employees: validEmployees,
+            managerName: managerUser.name || mdoc.managerName || 'Unknown Manager'
+          } }
+        );
+      }
+
+      // 3. Also fix the manager's assignedEmployees array in users collection
+      const validUserIds = [];
+      for (const emp of validEmployees) {
+        const u = await User.findOne({ employeeId: emp.employeeId });
+        if (u) validUserIds.push(u._id);
+      }
+      await User.updateOne({ _id: managerUser._id }, { $set: { assignedEmployees: validUserIds } });
+    }
+  } catch (err) {
+    console.error('⚠️ [SYNC] reconcileManagerData error:', err.message);
+  }
+}
+
+// ─── POST /api/admin/sync-db ────────────────────�// ─── ASSIGN EMPLOYEES TO MANAGER ─────────────────────────────────────────────
 // POST /api/managers/:managerId/assign
 // Body: { employeeIds: ['QBL-E0001', ...], callerId: 'QBL-E0018' }
 app.post('/api/managers/:managerId/assign', async (req, res) => {
@@ -500,21 +547,54 @@ app.post('/api/managers/:managerId/assign', async (req, res) => {
       return res.status(400).json({ message: 'Target must be a manager' });
     }
 
-    // Resolve employee DB ObjectIds
+    // Resolve employee DB ObjectIds for the NEW assignment
     const empUsers = await User.find({ employeeId: { $in: employeeIds.map(e => e.toUpperCase()) } });
     const empObjectIds = empUsers.map(u => u._id);
 
-    // Update manager's assignedEmployees
+    // ── Step 1: For each employee being assigned, remove them from their PREVIOUS manager ──
+    // Find employees that already have a managerId different from this manager
+    const employeesWithOtherManager = empUsers.filter(u =>
+      u.managerId && u.managerId.toString() !== manager._id.toString()
+    );
+
+    for (const emp of employeesWithOtherManager) {
+      const prevManager = await User.findById(emp.managerId);
+      if (prevManager) {
+        // Remove from previous manager's assignedEmployees
+        await User.updateOne(
+          { _id: prevManager._id },
+          { $pull: { assignedEmployees: emp._id } }
+        );
+        // Remove from previous manager's ManagerData employees array
+        await ManagerData.updateOne(
+          { managerId: prevManager.employeeId },
+          { $pull: { employees: { employeeId: emp.employeeId } } }
+        );
+        console.log(`🔄 [ASSIGN] Moved ${emp.employeeId} from manager ${prevManager.employeeId} → ${managerId}`);
+      }
+    }
+
+    // ── Pre-Step 2: Clear managerId for employees being unassigned ──
+    const newlyUnassignedObjectIds = (manager.assignedEmployees || [])
+      .filter(oldId => !empObjectIds.some(newId => newId.toString() === oldId.toString()));
+    if (newlyUnassignedObjectIds.length > 0) {
+      await User.updateMany(
+        { _id: { $in: newlyUnassignedObjectIds } },
+        { $unset: { managerId: 1 } }
+      );
+    }
+
+    // ── Step 2: Update this manager's assignedEmployees (full replace) ──
     manager.assignedEmployees = empObjectIds;
     await manager.save();
 
-    // Update each employee's managerId
+    // ── Step 3: Set managerId on all newly assigned employees ──
     await User.updateMany(
       { _id: { $in: empObjectIds } },
       { $set: { managerId: manager._id } }
     );
 
-    // Sync with ManagerData collection
+    // ── Step 4: REPLACE (not append) ManagerData employees list ──
     const newEmployeesData = empUsers.map(u => ({
       employeeId: u.employeeId,
       employeeName: u.name,
@@ -523,17 +603,17 @@ app.post('/api/managers/:managerId/assign', async (req, res) => {
     }));
     await ManagerData.findOneAndUpdate(
       { managerId: manager.employeeId },
-      { $addToSet: { employees: { $each: newEmployeesData } } },
+      { $set: { employees: newEmployeesData, managerName: manager.name } },
       { upsert: true }
     );
 
+    console.log(`✅ [ASSIGN] ${empObjectIds.length} employee(s) assigned to manager ${managerId}`);
     res.status(200).json({ message: 'Employees assigned to manager', managerId, count: empObjectIds.length });
   } catch (err) {
     console.error('❌ [ASSIGN-MANAGER] Error:', err.message);
     res.status(500).json({ message: 'Failed to assign employees', error: err.message });
   }
 });
-
 // ─── GET MANAGERS LIST ────────────────────────────────────────────────────────
 app.get('/api/managers', async (req, res) => {
   try {
@@ -801,6 +881,9 @@ app.get('/api/employees', async (req, res) => {
   try {
     const callerId = req.query.callerId;
 
+    // Auto-reconcile stale ManagerData entries (fire-and-forget, non-blocking)
+    reconcileManagerData().catch(e => console.error('⚠️ [SYNC] Background reconcile failed:', e.message));
+
     // Determine scope filter
     let scope = null; // null = fetch all
     if (callerId) {
@@ -828,8 +911,15 @@ app.get('/api/employees', async (req, res) => {
     const userMap = {};
     users.forEach(u => { userMap[u._id.toString()] = u; });
 
+    // Build a map of manager ObjectId → manager employeeId string (for the managerEmployeeId field)
+    const managerObjectIds = [...new Set(users.filter(u => u.managerId).map(u => u.managerId.toString()))];
+    const managerUsers = await User.find({ _id: { $in: managerObjectIds } }, 'employeeId');
+    const managerIdMap = {}; // ObjectId string → employeeId string
+    managerUsers.forEach(m => { managerIdMap[m._id.toString()] = m.employeeId; });
+
     const employees = details.map(d => {
       const u = userMap[d.userId.toString()] || {};
+      const managerObjId = u.managerId ? u.managerId.toString() : null;
       return {
         id: d.employeeId,
         name: u.name || '',
@@ -856,6 +946,7 @@ app.get('/api/employees', async (req, res) => {
         color: d.color,
         phone: d.phone,
         managerId: u.managerId || null,
+        managerEmployeeId: managerObjId ? (managerIdMap[managerObjId] || null) : null,
       };
     });
 
@@ -869,16 +960,68 @@ app.get('/api/employees', async (req, res) => {
 // ─── DELETE EMPLOYEE ─────────────────────────────────────────────────────────
 app.delete('/api/employees/:employeeId', async (req, res) => {
   const { employeeId } = req.params;
+  const empIdUpper = employeeId.toUpperCase();
   try {
-    const user = await User.findOne({ employeeId: employeeId.toUpperCase() });
-    if (!user) return res.status(404).json({ message: 'Employee not found' });
+    const user = await User.findOne({ employeeId: empIdUpper });
 
+    // ── Handle orphaned EmployeeDetail (User deleted but Detail remains) ──
+    if (!user) {
+      console.warn(`⚠️ [DELETE] User ${empIdUpper} not in users collection — cleaning up orphaned records`);
+      const detail = await EmployeeDetail.findOne({ employeeId: empIdUpper });
+      if (!detail) {
+        return res.status(404).json({ message: 'Employee not found in any collection' });
+      }
+      // Clean up orphaned EmployeeDetail and leave records
+      await EmployeeLeave.deleteMany({ employeeId: empIdUpper });
+      await Message.deleteMany({ $or: [{ senderId: empIdUpper }, { receiverId: empIdUpper }] });
+      await Notification.deleteMany({ receiverId: empIdUpper });
+      // Remove from any ManagerData
+      await ManagerData.updateMany({}, { $pull: { employees: { employeeId: empIdUpper } } });
+      await EmployeeDetail.deleteOne({ employeeId: empIdUpper });
+      console.log(`✅ [DELETE] Orphaned records for ${empIdUpper} fully cleaned`);
+      return res.status(200).json({ message: 'Employee deleted successfully' });
+    }
+
+    const role = normalizeRole(user.role);
+
+    // ── If deleting a MANAGER: clean up their ManagerData + clear managerId on their team ──
+    if (role === 'manager') {
+      await ManagerData.deleteOne({ managerId: user.employeeId });
+      console.log(`🧹 [DELETE] Removed ManagerData for manager ${user.employeeId}`);
+      await User.updateMany(
+        { managerId: user._id },
+        { $unset: { managerId: '' } }
+      );
+      console.log(`🧹 [DELETE] Cleared managerId references from employees under ${user.employeeId}`);
+    }
+
+    // ── If this employee was assigned to a manager: remove from manager's assignedEmployees + ManagerData ──
+    if (user.managerId) {
+      await User.updateOne(
+        { _id: user.managerId },
+        { $pull: { assignedEmployees: user._id } }
+      );
+      const managerUser = await User.findById(user.managerId);
+      if (managerUser) {
+        await ManagerData.updateOne(
+          { managerId: managerUser.employeeId },
+          { $pull: { employees: { employeeId: user.employeeId } } }
+        );
+      }
+      console.log(`🧹 [DELETE] Removed ${user.employeeId} from their manager's team`);
+    }
+
+    // ── Delete all associated records ──
+    await EmployeeLeave.deleteMany({ userId: user._id });
+    await Message.deleteMany({ $or: [{ senderId: user.employeeId }, { receiverId: user.employeeId }] });
+    await Notification.deleteMany({ receiverId: user.employeeId });
     await EmployeeDetail.deleteOne({ userId: user._id });
     await User.deleteOne({ _id: user._id });
 
+    console.log(`✅ [DELETE] Employee ${user.employeeId} (${user.name}) fully removed`);
     res.status(200).json({ message: 'Employee deleted successfully' });
   } catch (error) {
-    console.error('❌ [DELETE-EMPLOYEE] Error:', error.message);
+    console.error('❌ [DELETE-EMPLOYEE] Error:', error.message, error.stack);
     res.status(500).json({ message: 'Failed to delete employee', error: error.message });
   }
 });

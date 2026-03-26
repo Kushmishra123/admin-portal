@@ -65,14 +65,14 @@ const MyLeaves = () => {
               <p className="page-subtitle">View your leave history and apply for new leaves</p>
             </div>
             <LoaderButton className="btn-primary" onClick={() => setShowForm(s => !s)}>
-              {showForm ? '✕ Cancel' : '➕ Apply for Leave'}
+              {showForm ? ' Cancel' : ' Apply for Leave'}
             </LoaderButton>
           </div>
 
           {/* ── Live Leave Balance ── */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
              <h2 style={{ fontSize: 16, fontWeight: 700, color: '#fff', margin: 0 }}>Leave Balance</h2>
-             <LoaderButton onClick={() => window.location.reload()} style={{ background: 'transparent', border: 'none', color: '#76c733', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>🔄 Refresh Balance</LoaderButton>
+             <LoaderButton onClick={() => window.location.reload()} style={{ background: 'transparent', border: 'none', color: '#76c733', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}> Refresh Balance</LoaderButton>
           </div>
 
           <div className="leave-balance-grid" style={{ marginBottom: 32 }}>
@@ -83,7 +83,7 @@ const MyLeaves = () => {
               return (
                 <div className="leave-balance-card" key={type} style={{ position: 'relative', overflow: 'hidden' }}>
                   {/* Background decoration */}
-                  <div style={{ position: 'absolute', top: -10, right: -10, fontSize: 40, opacity: 0.05, transform: 'rotate(15deg)' }}>📅</div>
+                  <div style={{ position: 'absolute', top: -10, right: -10, fontSize: 40, opacity: 0.05, transform: 'rotate(15deg)' }}></div>
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
@@ -120,7 +120,7 @@ const MyLeaves = () => {
           {/* ── Apply Form ── */}
           {showForm && (
             <div className="form-card" style={{ marginBottom: 24 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 20 }}>📝 Apply for Leave</h3>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 20 }}> Apply for Leave</h3>
               <form >
                 <div className="form-grid">
                   <div className="form-group">
@@ -200,7 +200,7 @@ const MyLeaves = () => {
 
       {showToast && (
         <div className="toast" style={toastType === 'error' ? { background: 'rgba(239,68,68,0.15)', borderColor: 'rgba(239,68,68,0.3)' } : {}}>
-          <span className="toast-icon">{toastType === 'error' ? '⚠️' : '📅'}</span>
+          <span className="toast-icon">{toastType === 'error' ? '' : ''}</span>
           <span className="toast-msg" style={toastType === 'error' ? { color: '#f87171' } : {}}>{toastMsg}</span>
         </div>
       )}

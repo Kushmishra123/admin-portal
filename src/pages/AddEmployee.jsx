@@ -100,11 +100,11 @@ const AddEmployee = () => {
     endTime: '',
     kra: '',
     kpa: '',
-    // 🔐 Login credentials
+    //  Login credentials
     targetCode: '',
     password: '',
     confirmPassword: '',
-    // 🛡️ RBAC
+    //  RBAC
     role: 'employee',
     managerId: '',
   });
@@ -169,7 +169,7 @@ const AddEmployee = () => {
       managerId: user?.role === 'manager' ? user.employeeId : (form.managerId || undefined),
     };
 
-    console.log('📤 [ADD-EMPLOYEE FORM] Sending to server:', { ...payload, password: '***hidden***' });
+    console.log(' [ADD-EMPLOYEE FORM] Sending to server:', { ...payload, password: '***hidden***' });
 
     try {
       const response = await fetch(`${API_URL}/employees/add-employee`, {
@@ -180,7 +180,7 @@ const AddEmployee = () => {
       });
 
       const data = await response.json();
-      console.log('📬 [ADD-EMPLOYEE FORM] Server response:', data);
+      console.log(' [ADD-EMPLOYEE FORM] Server response:', data);
 
       if (!response.ok) {
         setServerError(data.error || data.message || 'Failed to add employee. Please try again.');
@@ -195,7 +195,7 @@ const AddEmployee = () => {
       setTimeout(() => { setShowToast(false); navigate('/employees'); }, 2000);
 
     } catch (err) {
-      console.error('❌ [ADD-EMPLOYEE FORM] Network error:', err);
+      console.error(' [ADD-EMPLOYEE FORM] Network error:', err);
       setServerError('Network error. Make sure the backend server is running.');
     } finally {
       setSubmitLoading(false);
@@ -205,15 +205,15 @@ const AddEmployee = () => {
   const handleResetPassword = async () => {
     setResetMsg('');
     if (!form.targetCode) {
-      setResetMsg('❌ Please enter the Employee Code to reset.');
+      setResetMsg(' Please enter the Employee Code to reset.');
       return;
     }
     if (!form.password || form.password.length < 6) {
-      setResetMsg('❌ New password must be at least 6 characters.');
+      setResetMsg(' New password must be at least 6 characters.');
       return;
     }
     if (form.password !== form.confirmPassword) {
-      setResetMsg('❌ Passwords do not match.');
+      setResetMsg(' Passwords do not match.');
       return;
     }
 
@@ -232,13 +232,13 @@ const AddEmployee = () => {
 
       const data = await res.json();
       if (!res.ok) {
-        setResetMsg(`❌ ${data.message || 'Password reset failed.'}`);
+        setResetMsg(` ${data.message || 'Password reset failed.'}`);
       } else {
-        setResetMsg(`✅ ${data.message || 'Password reset successfully!'}`);
+        setResetMsg(` ${data.message || 'Password reset successfully!'}`);
         setForm(f => ({ ...f, targetCode: '', password: '', confirmPassword: '' }));
       }
     } catch (err) {
-      setResetMsg('❌ Network error. Please try again.');
+      setResetMsg(' Network error. Please try again.');
     } finally {
       setResetLoading(false);
     }
@@ -270,7 +270,7 @@ const AddEmployee = () => {
               {/* Personal Info */}
               <div className="form-card" style={{ marginBottom: 20 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  👤 Personal Information
+                   Personal Information
                 </h3>
                 <Field label="Employee Code" field="employeeCode" placeholder="e.g. QBL-E0026" form={form} errors={errors} handleChange={handleChange} />
                 <Field label="Full Name" field="fullName" form={form} errors={errors} handleChange={handleChange} />
@@ -291,7 +291,7 @@ const AddEmployee = () => {
               {/* Work & Shift */}
               <div className="form-card" style={{ marginBottom: 20 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  🏢 Work &amp; Shift Details
+                   Work &amp; Shift Details
                 </h3>
                 <Select label="Department" field="department" options={DEPARTMENTS} form={form} errors={errors} handleChange={handleChange} />
                 <Select label="Default Shift" field="defaultShift" options={SHIFTS} form={form} errors={errors} handleChange={handleChange} />
@@ -301,19 +301,19 @@ const AddEmployee = () => {
                   <Field label="Start" field="startTime" type="time" form={form} errors={errors} handleChange={handleChange} />
                   <Field label="End" field="endTime" type="time" form={form} errors={errors} handleChange={handleChange} />
                 </div>
-                <Textarea label="KRA" icon="🎯" field="kra" form={form} errors={errors} handleChange={handleChange} />
+                <Textarea label="KRA" icon="" field="kra" form={form} errors={errors} handleChange={handleChange} />
               </div>
 
               {/* KPA */}
               <div className="form-card" style={{ marginBottom: 20 }}>
-                <Textarea label="KPA" icon="📈" field="kpa" form={form} errors={errors} handleChange={handleChange} />
+                <Textarea label="KPA" icon="" field="kpa" form={form} errors={errors} handleChange={handleChange} />
               </div>
 
-              {/* 🔐 Login Credentials */}
+              {/*  Login Credentials */}
               <div className="form-card" style={{ marginBottom: 24, border: '1px solid rgba(92, 184, 92, 0.2)', background: 'rgba(92,184,92,0.03)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                   <h3 style={{ fontSize: 16, fontWeight: 700, color: '#5cb85c', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
-                    🔐 Login Credentials
+                     Login Credentials
                   </h3>
                   {user?.role === 'superadmin' && (
                     <LoaderButton
@@ -325,7 +325,7 @@ const AddEmployee = () => {
                         padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: resetLoading ? 'wait' : 'pointer'
                       }}
                     >
-                      {resetLoading ? '⏳ Resetting...' : '🔄 Reset Password'}
+                      {resetLoading ? '⏳ Resetting...' : ' Reset Password'}
                     </LoaderButton>
                   )}
                 </div>
@@ -353,29 +353,29 @@ const AddEmployee = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   <Field
-                    label="Password" icon="🔑"
+                    label="Password" icon=""
                     field="password" type="password"
                     placeholder="Min. 6 characters"
                     form={form} errors={errors} handleChange={handleChange}
                   />
                   <Field
-                    label="Confirm Password" icon="✅"
+                    label="Confirm Password" icon=""
                     field="confirmPassword" type="password"
                     placeholder="Re-enter password"
                     form={form} errors={errors} handleChange={handleChange}
                   />
                 </div>
                 {resetMsg && (
-                  <div style={{ marginTop: 12, fontSize: 13, color: resetMsg.startsWith('✅') ? '#4ade80' : '#f87171' }}>
+                  <div style={{ marginTop: 12, fontSize: 13, color: resetMsg.startsWith('') ? '#4ade80' : '#f87171' }}>
                     {resetMsg}
                   </div>
                 )}
               </div>
 
-              {/* 🛡️ RBAC — Role & Manager Assignment */}
+              {/*  RBAC — Role & Manager Assignment */}
               <div className="form-card" style={{ marginBottom: 24, border: '1px solid rgba(99,102,241,0.25)', background: 'rgba(99,102,241,0.04)' }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: '#818cf8', display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 6px' }}>
-                  🛡️ Role & Access Control
+                   Role & Access Control
                 </h3>
                 <p style={{ fontSize: 12, color: '#6b7b6b', marginBottom: 20 }}>
                   Assign a role to control what this user can access in the portal.
@@ -395,7 +395,7 @@ const AddEmployee = () => {
                 </div>
                 {form.role === 'employee' && (user?.role === 'superadmin' || user?.role === 'hr') && (
                   <Field
-                    label="Manager Employee Code (Optional)" icon="👔"
+                    label="Manager Employee Code (Optional)" icon=""
                     field="managerId" placeholder="e.g. QBL-E0010"
                     hint="Link this employee to a manager. Leave blank if not assigned."
                     form={form} errors={errors} handleChange={handleChange}
@@ -403,15 +403,15 @@ const AddEmployee = () => {
                 )}
                 {form.role === 'employee' && user?.role === 'manager' && (
                   <div style={{ marginTop: 8, marginBottom: 16, fontSize: 13, color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(16,185,129,0.3)' }}>
-                    ✅👔 This employee will be automatically assigned to your team.
+                     This employee will be automatically assigned to your team.
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
                   {[
-                    { r: 'superadmin', label: '🛡️ Super Admin', color: '#f59e0b' },
-                    { r: 'manager',    label: '👔 Manager',     color: '#0ea5e9' },
-                    { r: 'hr',         label: '🧑‍💼 HR',          color: '#a78bfa' },
-                    { r: 'employee',   label: '👤 Employee',    color: '#76c733' },
+                    { r: 'superadmin', label: ' Super Admin', color: '#f59e0b' },
+                    { r: 'manager',    label: ' Manager',     color: '#0ea5e9' },
+                    { r: 'hr',         label: '‍ HR',          color: '#a78bfa' },
+                    { r: 'employee',   label: ' Employee',    color: '#76c733' },
                   ].map(({ r, label, color }) => (
                     <span key={r} style={{
                       fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
@@ -429,7 +429,7 @@ const AddEmployee = () => {
                   borderRadius: 12, padding: '12px 16px', marginBottom: 16,
                   fontSize: 13, color: '#f87171', display: 'flex', alignItems: 'center', gap: 8
                 }}>
-                  ⚠️ {serverError}
+                   {serverError}
                 </div>
               )}
 
@@ -441,7 +441,7 @@ const AddEmployee = () => {
                   style={{ width: '100%', padding: '14px', opacity: submitLoading ? 0.7 : 1 }}
                   disabled={submitLoading}
                 >
-                  {submitLoading ? '⏳ Saving to Database…' : '✅ Add Employee'}
+                  {submitLoading ? '⏳ Saving to Database…' : ' Add Employee'}
                 </LoaderButton>
               </div>
             </form>
@@ -452,7 +452,7 @@ const AddEmployee = () => {
               {/* Add Department */}
               <div className="form-card" style={{ background: '#080c08' }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 16, borderBottom: '1px solid #1a2a1a' }}>
-                  🏢 Add Department
+                   Add Department
                 </h3>
                 <Field label="Department Name" field="deptName" form={deptForm} errors={{}} handleChange={handleDeptChange} />
                 <Select label="Work Type" field="workType" options={WORK_TYPES} form={deptForm} errors={{}} handleChange={handleDeptChange} />
@@ -465,7 +465,7 @@ const AddEmployee = () => {
               {/* Add Shift */}
               <div className="form-card" style={{ background: '#080c08' }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 16, borderBottom: '1px solid #1a2a1a' }}>
-                  ⏱ Add Shift
+                   Add Shift
                 </h3>
                 <Field label="Shift Name" field="shiftName" placeholder="e.g., Morning Shift" form={shiftForm} errors={{}} handleChange={handleShiftChange} />
                 <Field label="Shift Code" field="shiftCode" placeholder="e.g., M" form={shiftForm} errors={{}} handleChange={handleShiftChange} />
@@ -485,7 +485,7 @@ const AddEmployee = () => {
 
       {showToast && (
         <div className="toast">
-          <span className="toast-icon">✅</span>
+          <span className="toast-icon"></span>
           <span className="toast-msg">Employee added successfully! Saved to MongoDB.</span>
         </div>
       )}

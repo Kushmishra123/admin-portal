@@ -11,7 +11,7 @@ const Login = ({ onLogin }) => {
       <div className="login-left">
         <div className="logo-wrapper">
           <img src={logo} alt="Quisitive Logo" className="qb-logo" />
-          <span className="brand-name">Quisitive Businesses</span>
+          {/* <span className="brand-name">Quisitive Businesses</span> */}
         </div>
 
         <h1>
@@ -24,11 +24,6 @@ const Login = ({ onLogin }) => {
           tracking performance, and growing together.
         </p>
 
-        <div className="login-badges">
-          <span className="badge-item">🔒 Enterprise Security</span>
-          <span className="badge-item">📊 Real-time Analytics</span>
-          <span className="badge-item">👥 Team Management</span>
-        </div>
       </div>
 
       {/* Right Panel */}

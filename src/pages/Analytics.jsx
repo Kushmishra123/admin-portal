@@ -1,7 +1,9 @@
 import React from 'react';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
+import { useUser } from '../context/UserContext';
 import { useEmployee } from '../context/EmployeeContext';
+import { Download } from 'lucide-react';
 import '../styles/dashboard.css';
 import LoaderButton from '../components/LoaderButton';
 
@@ -41,9 +43,9 @@ const Analytics = () => {
   const monthlyMax = Math.max(...monthlyJoins, 1);
 
   const kpis = [
-    { icon: '👥', label: 'Total Employees',  value: totalEmployees, sub: 'Total workforce',  color: '#76c733' },
-    { icon: '✅', label: 'Active Employees',  value: activeEmployees, sub: `${totalEmployees ? Math.round((activeEmployees/totalEmployees)*100) : 0}% of total`,  color: '#4a90d9' },
-    { icon: '🏢', label: 'Departments',       value: departments.length, sub: 'Active departments', color: '#9b59b6' },
+    { icon: '', label: 'Total Employees',  value: totalEmployees, sub: 'Total workforce',  color: '#76c733' },
+    { icon: '', label: 'Active Employees',  value: activeEmployees, sub: `${totalEmployees ? Math.round((activeEmployees/totalEmployees)*100) : 0}% of total`,  color: '#4a90d9' },
+    { icon: '', label: 'Departments',       value: departments.length, sub: 'Active departments', color: '#9b59b6' },
   ];
 
   return (
@@ -58,7 +60,7 @@ const Analytics = () => {
               <h1 className="page-title">Analytics</h1>
               <p className="page-subtitle">Workforce overview and department breakdown</p>
             </div>
-            <LoaderButton className="btn-secondary">⬇ Export Report</LoaderButton>
+            <LoaderButton className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Download size={16} /> Export Report</LoaderButton>
           </div>
 
           {/* KPI Cards */}

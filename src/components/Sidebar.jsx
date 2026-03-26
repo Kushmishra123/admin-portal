@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import logo from '../assets/qb.png';
 import LoaderButton from './LoaderButton';
+import { Users, TrendingUp, BarChart2, Calendar, User, Settings, Building2, ClipboardList, Power } from 'lucide-react';
 
 const Sidebar = () => {
   const { user, handleLogout, isSidebarCollapsed, setIsSidebarCollapsed } = useUser();
@@ -15,37 +16,40 @@ const Sidebar = () => {
 
   // ── Role-based nav link sets ─────────────────────────────────────────────────
   const superadminLinks = [
-    { to: '/employees',    icon: '👥', label: 'Employee Directory' },
-    { to: '/analytics',   icon: '📈', label: 'Analytics' },
-    { to: '/dashboard',   icon: '📊', label: 'Dashboard' },
-    { to: '/manage-leaves', icon: '📅', label: 'Manage Leaves' },
-    { to: '/settings',    icon: '⚙️', label: 'Settings' },
-    { to: '/about',       icon: '🏢', label: 'About Company' },
+    { to: '/employees',    icon: <Users size={18} />, label: 'Employee Directory' },
+    { to: '/analytics',   icon: <TrendingUp size={18} />, label: 'Analytics' },
+    { to: '/dashboard',   icon: <BarChart2 size={18} />, label: 'Dashboard' },
+    { to: '/manage-leaves', icon: <Calendar size={18} />, label: 'Manage Leaves' },
+    { to: '/my-leaves',   icon: <User size={18} />, label: 'My Leaves' },
+    { to: '/settings',    icon: <Settings size={18} />, label: 'Settings' },
+    { to: '/about',       icon: <Building2 size={18} />, label: 'About Company' },
   ];
 
   const managerLinks = [
-    { to: '/employees',    icon: '👥', label: 'My Team' },
-    { to: '/dashboard',   icon: '📊', label: 'Dashboard' },
-    { to: '/manage-leaves', icon: '📅', label: 'Team Leaves' },
-    { to: '/settings',    icon: '⚙️', label: 'Settings' },
-    { to: '/about',       icon: '🏢', label: 'About Company' },
+    { to: '/employees',    icon: <Users size={18} />, label: 'My Team' },
+    { to: '/dashboard',   icon: <BarChart2 size={18} />, label: 'Dashboard' },
+    { to: '/manage-leaves', icon: <Calendar size={18} />, label: 'Team Leaves' },
+    { to: '/my-leaves',   icon: <User size={18} />, label: 'My Leaves' },
+    { to: '/settings',    icon: <Settings size={18} />, label: 'Settings' },
+    { to: '/about',       icon: <Building2 size={18} />, label: 'About Company' },
   ];
 
   const hrLinks = [
-    { to: '/employees',    icon: '👥', label: 'Employee Directory' },
-    { to: '/dashboard',   icon: '📊', label: 'Dashboard' },
-    { to: '/manage-leaves', icon: '📅', label: 'All Leaves' },
-    { to: '/apply-leave', icon: '✍️', label: 'Apply Leave' },
-    { to: '/settings',    icon: '⚙️', label: 'Settings' },
-    { to: '/about',       icon: '🏢', label: 'About Company' },
+    { to: '/employees',    icon: <Users size={18} />, label: 'Employee Directory' },
+    { to: '/dashboard',   icon: <BarChart2 size={18} />, label: 'Dashboard' },
+    { to: '/manage-leaves', icon: <Calendar size={18} />, label: 'All Leaves' },
+    { to: '/apply-leave', icon: <ClipboardList size={18} />, label: 'Apply on Behalf' },
+    { to: '/my-leaves',   icon: <User size={18} />, label: 'My Leaves' },
+    { to: '/settings',    icon: <Settings size={18} />, label: 'Settings' },
+    { to: '/about',       icon: <Building2 size={18} />, label: 'About Company' },
   ];
 
   const employeeLinks = [
-    { to: '/dashboard', icon: '📊', label: 'Dashboard' },
-    { to: '/my-leaves', icon: '📅', label: 'My Leaves' },
-    { to: '/policy',    icon: '📋', label: 'Policy' },
-    { to: '/about',     icon: '🏢', label: 'About Company' },
-    { to: '/settings',  icon: '⚙️', label: 'Settings' },
+    { to: '/dashboard', icon: <BarChart2 size={18} />, label: 'Dashboard' },
+    { to: '/my-leaves', icon: <Calendar size={18} />, label: 'My Leaves' },
+    { to: '/policy',    icon: <ClipboardList size={18} />, label: 'Policy' },
+    { to: '/about',     icon: <Building2 size={18} />, label: 'About Company' },
+    { to: '/settings',  icon: <Settings size={18} />, label: 'Settings' },
   ];
 
   const role = user?.role;
@@ -114,7 +118,7 @@ const Sidebar = () => {
           </div>
         </div>
         <LoaderButton className="signout-btn" onClick={onLogout}>
-          <span className="signout-icon">⏻</span>
+          <span className="signout-icon"><Power size={18}/></span>
           <span className="signout-text">Sign Out</span>
         </LoaderButton>
       </div>

@@ -157,7 +157,7 @@ const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wis
         <div className={`chat-sidebar ${selectedUser ? 'hidden-on-mobile' : ''}`}>
           <div className="chat-sidebar-header">
             <h3 className="chat-sidebar-title">Chats</h3>
-            <button onClick={onClose} className="chat-close-btn" title="Close chat">✕</button>
+            <button onClick={onClose} className="chat-close-btn" title="Close chat"></button>
           </div>
 
           <div className="chat-user-list">
@@ -286,7 +286,7 @@ const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wis
           ) : (
             /* Empty state when no chat is selected — visible on desktop only */
             <div className="chat-empty-state">
-              <div className="chat-empty-icon">💬</div>
+              <div className="chat-empty-icon"></div>
               <h3 className="chat-empty-title">Your Messages</h3>
               <p className="chat-empty-subtitle">Select a user from the list to start chatting.</p>
             </div>

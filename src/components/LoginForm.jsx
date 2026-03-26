@@ -133,7 +133,7 @@ const LoginForm = ({ onLogin }) => {
 
   return (
     <div className="form-box">
-      <div className="form-box-tag">{isResetMode ? '🔒 RESET PASSWORD' : '🔐 SECURE LOGIN'}</div>
+      <div className="form-box-tag">{isResetMode ? 'RESET PASSWORD' : 'SECURE LOGIN'}</div>
 
       {isResetMode ? (
         <>
@@ -193,20 +193,20 @@ const LoginForm = ({ onLogin }) => {
               />
               {confirmPassword && newPassword && (
                 <span style={{ fontSize: 11, color: confirmPassword === newPassword ? '#4ade80' : '#f87171', marginTop: 4, display: 'block' }}>
-                  {confirmPassword === newPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
+                  {confirmPassword === newPassword ? ' Passwords match' : ' Passwords do not match'}
                 </span>
               )}
             </div>
 
-            {error   && <div className="error-msg"><span>⚠️</span> {error}</div>}
+            {error   && <div className="error-msg"><span></span> {error}</div>}
             {success && (
               <div style={{ color: '#76c733', background: 'rgba(118,199,51,0.1)', padding: '10px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>
-                <span>✅</span> {success}
+                <span></span> {success}
               </div>
             )}
 
             <LoaderButton onClick={handleResetSubmit} type="submit" className="sign-in-btn" disabled={loading}>
-              {loading ? '⏳ Resetting…' : '🔒 Reset Password'}
+              {loading ? '⏳ Resetting…' : 'Reset Password'}
             </LoaderButton>
 
             <LoaderButton type="button" onClick={toggleMode} style={{ background: 'transparent', border: 'none', color: '#6b7b6b', cursor: 'pointer', marginTop: '16px', fontSize: '14px', width: '100%' }}>
@@ -244,7 +244,7 @@ const LoginForm = ({ onLogin }) => {
               />
             </div>
 
-            {error && <div className="error-msg"><span>⚠️</span> {error}</div>}
+            {error && <div className="error-msg"><span></span> {error}</div>}
 
             <LoaderButton onClick={handleLoginSubmit} type="submit" className="sign-in-btn" disabled={loading}>
               {loading ? '⏳ Signing in…' : 'Sign In →'}

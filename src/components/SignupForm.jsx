@@ -48,7 +48,7 @@ const SignupForm = ({ onSignupSuccess }) => {
 
   return (
     <div className="form-box">
-      <div className="form-box-tag">🚀 JOIN US</div>
+      <div className="form-box-tag"> JOIN US</div>
       <h2>Create an Account</h2>
       <p>Sign up for your new Quisitive Business account</p>
 
@@ -98,7 +98,7 @@ const SignupForm = ({ onSignupSuccess }) => {
 
         {error && (
           <div className="error-msg">
-            <span>⚠️</span> {error}
+            <span></span> {error}
           </div>
         )}
 

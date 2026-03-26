@@ -21,7 +21,7 @@ const AboutCompany = () => {
           <div className="section-grid">
             {/* About Section */}
             <div className="form-card" style={{ gridColumn: '1 / -1' }}>
-              <div className="settings-section-title">🏢 About Us</div>
+              <div className="settings-section-title"> About Us</div>
               <p style={{ color: '#a3b5a3', lineHeight: '1.6', fontSize: '15px' }}>
                 At QUISITIVE BUSINESSES , we offer end-to-end all IT solutions & managed services to keep your business running smoothly. Our facility combines advanced technology with top-tier security and reliability to ensure your data is always safe and accessible.
               </p>
@@ -29,7 +29,7 @@ const AboutCompany = () => {
 
             {/* Mission Section */}
             <div className="form-card">
-              <div className="settings-section-title">🎯 Our Mission</div>
+              <div className="settings-section-title"> Our Mission</div>
               <p style={{ color: '#a3b5a3', lineHeight: '1.6', fontSize: '15px' }}>
                 To provide reliable, innovative, and secure IT and data center solutions that support business growth and continuity.
               </p>
@@ -37,7 +37,7 @@ const AboutCompany = () => {
 
             {/* Team Section */}
             <div className="form-card">
-              <div className="settings-section-title">👥 Our Team</div>
+              <div className="settings-section-title"> Our Team</div>
               <p style={{ color: '#a3b5a3', lineHeight: '1.6', fontSize: '15px' }}>
                 The company has experienced IT professionals who ensure high standards of security, performance, and service.
               </p>
@@ -45,7 +45,7 @@ const AboutCompany = () => {
 
             {/* Services Section */}
             <div className="form-card" style={{ gridColumn: '1 / -1' }}>
-              <div className="settings-section-title">🛠️ Our Services</div>
+              <div className="settings-section-title"> Our Services</div>
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -70,7 +70,7 @@ const AboutCompany = () => {
                     alignItems: 'center',
                     gap: '10px'
                   }}>
-                    <span style={{ color: '#76c733' }}>✓</span> {service}
+                    <span style={{ color: '#76c733' }}></span> {service}
                   </div>
                 ))}
               </div>
@@ -78,7 +78,7 @@ const AboutCompany = () => {
 
             {/* Additional Info */}
             <div className="form-card" style={{ gridColumn: '1 / -1', background: 'linear-gradient(145deg, #111e14, #0a110b)' }}>
-              <div className="settings-section-title">✨ Why Choose Us</div>
+              <div className="settings-section-title"> Why Choose Us</div>
               <ul style={{ color: '#a3b5a3', lineHeight: '1.8', fontSize: '15px', paddingLeft: '20px', margin: 0 }}>
                 <li><strong>24/7 Support:</strong> Always available to help your business stay online.</li>
                 <li><strong>Security & Scalability:</strong> Focus on security, scalability, and performance to meet growing demands.</li>

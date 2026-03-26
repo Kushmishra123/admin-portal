@@ -168,7 +168,7 @@ const Settings = () => {
 
             {/* ── Profile ── */}
             <div className="form-card" style={{ gridColumn: '1 / -1' }}>
-              <div className="settings-section-title">👤 Profile Information</div>
+              <div className="settings-section-title"> Profile Information</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 24 }}>
                 <div style={{
                   width: 72, height: 72,
@@ -204,13 +204,13 @@ const Settings = () => {
                       value={profile.bio} onChange={e => setProfile(p => ({ ...p, bio: e.target.value }))} />
                   </div>
                 </div>
-                <LoaderButton onClick={handleSave} type="submit" className="btn-primary">💾 Save Changes</LoaderButton>
+                <LoaderButton onClick={handleSave} type="submit" className="btn-primary"> Save Changes</LoaderButton>
               </form>
             </div>
 
             {/* ── Own Password Reset ── */}
             <div className="form-card" style={{ gridColumn: '1 / -1' }}>
-              <div className="settings-section-title">🔒 Reset Password</div>
+              <div className="settings-section-title"> Reset Password</div>
               <p style={{ fontSize: 13, color: '#888', marginBottom: 20 }}>
                 Update your account password. You must enter your current password to set a new one.
               </p>
@@ -267,7 +267,7 @@ const Settings = () => {
                           marginTop: 4,
                           display: 'block'
                         }}>
-                          {pwForm.confirmPassword === pwForm.newPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
+                          {pwForm.confirmPassword === pwForm.newPassword ? ' Passwords match' : ' Passwords do not match'}
                         </span>
                       )}
                     </div>
@@ -276,17 +276,17 @@ const Settings = () => {
 
                 {pwError   && (
                   <div style={{ color: '#f87171', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 10, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>
-                    ⚠️ {pwError}
+                     {pwError}
                   </div>
                 )}
                 {pwSuccess && (
                   <div style={{ color: '#4ade80', background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)', borderRadius: 10, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>
-                    ✅ {pwSuccess}
+                     {pwSuccess}
                   </div>
                 )}
 
                 <LoaderButton onClick={handleOwnPasswordReset} type="submit" className="btn-primary" disabled={pwLoading}>
-                  {pwLoading ? '⏳ Updating…' : '🔒 Reset Password'}
+                  {pwLoading ? '⏳ Updating…' : ' Reset Password'}
                 </LoaderButton>
               </form>
             </div>
@@ -295,7 +295,7 @@ const Settings = () => {
 
             {/* ── Notifications ── */}
             <div className="form-card">
-              <div className="settings-section-title">🔔 Notifications</div>
+              <div className="settings-section-title"> Notifications</div>
               {[
                 { key: 'emailAlerts',       label: 'Email Alerts',         sub: 'Receive alerts via email'         },
                 { key: 'pushNotifs',        label: 'Push Notifications',   sub: 'Browser push notifications'       },
@@ -320,7 +320,7 @@ const Settings = () => {
 
       {showToast && (
         <div className={`toast ${toastType === 'error' ? 'toast-error' : ''}`}>
-          <span className="toast-icon">{toastType === 'error' ? '❌' : '✅'}</span>
+          <span className="toast-icon">{toastType === 'error' ? '' : ''}</span>
           <span className="toast-msg">{toastMsg}</span>
         </div>
       )}

@@ -64,8 +64,13 @@ export const EmployeeProvider = ({ children }) => {
 
   const deleteEmployee = async (id) => {
     try {
-      await fetch(`${API_URL}/employees/${id}`, { method: 'DELETE', credentials: 'include' });
-      setEmployees(prev => prev.filter(e => e.id !== id));
+      const res = await fetch(`${API_URL}/employees/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Delete failed');
+      }
+      // Re-fetch from server to ensure full sync (clears manager refs, etc.)
+      await fetchEmployees();
     } catch (err) {
       console.error('Failed to delete employee:', err);
     }

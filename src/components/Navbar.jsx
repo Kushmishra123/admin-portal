@@ -85,7 +85,7 @@ const Navbar = ({ title, subtitle }) => {
 
       <div className="nav-right">
         <div className="nav-time">
-          <span className="time-badge">🕐 {timeStr}</span>
+          <span className="time-badge"> {timeStr}</span>
         </div>
 
         {user?.role === 'superadmin' && (
@@ -96,7 +96,7 @@ const Navbar = ({ title, subtitle }) => {
               title="Notifications"
               style={{ background: 'rgba(74, 144, 217, 0.1)', color: '#4a90d9', borderColor: 'rgba(74, 144, 217, 0.2)' }}
             >
-              <span>🔔</span>
+              <span></span>
               {unreadCount > 0 && (
                 <span style={{
                   position: 'absolute', top: -5, right: -5, background: '#ef4444', color: '#fff',

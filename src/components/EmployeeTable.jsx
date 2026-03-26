@@ -23,7 +23,7 @@ const EmployeeTable = ({ onEdit, onViewDetails, onResetPassword }) => {
         </div>
         <input
           type="text"
-          placeholder="🔍  Search by name, code, dept…"
+          placeholder="  Search by name, code, dept…"
           className="filter-input"
           value={filter}
           onChange={e => setFilter(e.target.value)}
@@ -32,7 +32,7 @@ const EmployeeTable = ({ onEdit, onViewDetails, onResetPassword }) => {
 
       {filtered.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">🔍</div>
+          <div className="empty-state-icon"></div>
           <p>No employees match "{filter}"</p>
         </div>
       ) : (
@@ -93,7 +93,7 @@ const EmployeeTable = ({ onEdit, onViewDetails, onResetPassword }) => {
                       border: '1px solid rgba(16, 185, 129, 0.3)', padding: '4px 8px',
                       borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: 'pointer'
                     }}>
-                      📄 View
+                       View
                     </LoaderButton>
                   ) : (
                     <span style={{ color: '#6b7b6b' }}>-</span>

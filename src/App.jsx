@@ -93,7 +93,7 @@ function App() {
               />
               <Route
                 path="/apply-leave"
-                element={user && isHR ? <ApplyLeave />  : <Navigate to="/" />}
+                element={user && isElevated ? <ApplyLeave />  : <Navigate to="/" />}
               />
 
               {/* Add Employee — Superadmin, Manager & HR */}

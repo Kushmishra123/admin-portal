@@ -11,7 +11,7 @@ const API = API_BASE_URL;
 const policies = [
   {
     id: 1,
-    icon: '🕐',
+    icon: '',
     title: 'Attendance & Working Hours',
     summary: 'Standard working hours are 9:00 AM – 6:00 PM, Monday to Saturday.',
     details: [
@@ -23,7 +23,7 @@ const policies = [
   },
   {
     id: 2,
-    icon: '📅',
+    icon: '',
     title: 'Leave Policy',
     summary: 'Employees are entitled to Casual, Sick, Annual, and Emergency leaves.',
     details: [
@@ -37,7 +37,7 @@ const policies = [
   },
   {
     id: 3,
-    icon: '💻',
+    icon: '',
     title: 'IT & Asset Usage Policy',
     summary: 'Company assets are for official use only and must be handled responsibly.',
     details: [
@@ -50,7 +50,7 @@ const policies = [
   },
   {
     id: 4,
-    icon: '🔒',
+    icon: '',
     title: 'Data Confidentiality & Security',
     summary: 'All company and client data must be treated with strict confidentiality.',
     details: [
@@ -63,7 +63,7 @@ const policies = [
   },
   {
     id: 5,
-    icon: '🤝',
+    icon: '',
     title: 'Code of Conduct',
     summary: 'Maintain a respectful, professional, and inclusive workplace.',
     details: [
@@ -76,7 +76,7 @@ const policies = [
   },
   {
     id: 6,
-    icon: '🚗',
+    icon: '',
     title: 'Travel & Expense Policy',
     summary: 'Business travel and expenses must be pre-approved and submitted on time.',
     details: [
@@ -116,16 +116,16 @@ const Policy = () => {
   const toggle = (id) => setOpenId(openId === id ? null : id);
 
   const handleSave = async () => {
-    console.log('🟡 [POLICY] Save clicked');
-    console.log('🟡 [POLICY] empId:', empId, '| checked:', checked);
+    console.log(' [POLICY] Save clicked');
+    console.log(' [POLICY] empId:', empId, '| checked:', checked);
 
     if (!empId || !checked) {
-      console.warn('⚠️ [POLICY] Blocked — empId or checkbox missing', { empId, checked });
+      console.warn(' [POLICY] Blocked — empId or checkbox missing', { empId, checked });
       return;
     }
 
     const url = `${API}/api/auth/policy-status/${empId}`;
-    console.log('📡 [POLICY] Sending PATCH to:', url);
+    console.log(' [POLICY] Sending PATCH to:', url);
 
     setSaving(true);
     setError('');
@@ -136,16 +136,16 @@ const Policy = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ policyStatus: true }),
       });
-      console.log('📩 [POLICY] Response status:', res.status, res.statusText);
+      console.log(' [POLICY] Response status:', res.status, res.statusText);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      console.log('✅ [POLICY] Response data:', data);
+      console.log(' [POLICY] Response data:', data);
       setUser((prev) => ({ ...prev, policyStatus: data.policyStatus }));
       setAlreadyAcknowledged(true);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
-      console.error('❌ [POLICY] Error:', err.message);
+      console.error(' [POLICY] Error:', err.message);
       setError('Could not save. Please try again.');
     } finally {
       setSaving(false);
@@ -162,7 +162,7 @@ const Policy = () => {
           {/* Header */}
           <div className="page-header">
             <div>
-              <h1 className="page-title">📋 Company Policy</h1>
+              <h1 className="page-title"> Company Policy</h1>
               <p className="page-subtitle">
                 Please read and follow all policies to maintain a productive and compliant workplace.
               </p>
@@ -253,7 +253,7 @@ const Policy = () => {
                             }}
                           >
                             <span style={{ color: '#76c733', marginTop: '2px', flexShrink: 0 }}>
-                              ✓
+                              
                             </span>
                             {point}
                           </li>
@@ -278,7 +278,7 @@ const Policy = () => {
               transition: 'border 0.3s ease',
             }}
           >
-            <div className="settings-section-title">✅ Policy Acknowledgement</div>
+            <div className="settings-section-title"> Policy Acknowledgement</div>
             <p style={{ color: '#7a9e7a', fontSize: '13px', marginBottom: '18px' }}>
               By checking the box below, you confirm that you have read, understood, and agree to
               abide by all the company policies listed above.
@@ -311,7 +311,7 @@ const Policy = () => {
                 }}
               >
                 {checked && (
-                  <span style={{ color: '#76c733', fontSize: '14px', fontWeight: 700 }}>✓</span>
+                  <span style={{ color: '#76c733', fontSize: '14px', fontWeight: 700 }}></span>
                 )}
               </div>
               <span
@@ -326,7 +326,7 @@ const Policy = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
               {alreadyAcknowledged ? (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 20px', borderRadius: '8px', background: 'rgba(118, 199, 51, 0.12)', border: '1px solid rgba(118, 199, 51, 0.35)', color: '#76c733', fontWeight: 600, fontSize: '14px' }}>
-                  ✅ Policy Already Acknowledged
+                   Policy Already Acknowledged
                 </span>
               ) : (
                 <LoaderButton
@@ -338,7 +338,7 @@ const Policy = () => {
                 </LoaderButton>
               )}
               {saved && (
-                <span style={{ color: '#76c733', fontSize: '13px', fontWeight: 600 }}>✓ Saved successfully!</span>
+                <span style={{ color: '#76c733', fontSize: '13px', fontWeight: 600 }}> Saved successfully!</span>
               )}
               {error && (
                 <span style={{ color: '#e05252', fontSize: '13px' }}>{error}</span>
@@ -352,7 +352,7 @@ const Policy = () => {
             style={{ marginTop: '10px', borderColor: 'rgba(118, 199, 51, 0.1)' }}
           >
             <p style={{ color: '#7a9e7a', fontSize: '13px', margin: 0, textAlign: 'center' }}>
-              📌 These policies are subject to periodic review. For queries, contact HR at{' '}
+               These policies are subject to periodic review. For queries, contact HR at{' '}
               <span style={{ color: '#76c733' }}>hr@quisitive.com</span>
             </p>
           </div>

@@ -1,0 +1,42 @@
+async function reconcileManagerData() {
+  try {
+    const allManagerDocs = await ManagerData.find({});
+    for (const mdoc of allManagerDocs) {
+      // 1. Check if this manager still exists and is still a manager
+      const managerUser = await User.findOne({ employeeId: mdoc.managerId });
+      if (!managerUser || normalizeRole(managerUser.role) !== 'manager') {
+        await ManagerData.deleteOne({ _id: mdoc._id });
+        console.log(`🧹 [SYNC] Removed stale ManagerData entry for ${mdoc.managerId} (no longer a manager or deleted)`);
+        continue;
+      }
+
+      // 2. Filter out employees who no longer exist or belong to another manager
+      const validEmployees = [];
+      for (const emp of mdoc.employees) {
+        const exists = await User.findOne({ employeeId: emp.employeeId });
+        // Employee must exist AND have this manager as their managerId
+        if (exists && exists.managerId && exists.managerId.toString() === managerUser._id.toString()) {
+          validEmployees.push(emp);
+        } else {
+          console.log(`🧹 [SYNC] Removing reassigned or orphaned employee ${emp.employeeId} from manager ${mdoc.managerId}'s ManagerData`);
+        }
+      }
+
+      if (validEmployees.length !== mdoc.employees.length) {
+        mdoc.employees = validEmployees;
+        if (!mdoc.managerName && managerUser) mdoc.managerName = managerUser.name;
+        await mdoc.save();
+      }
+
+      // 3. Also fix the manager's assignedEmployees array in users collection
+      const validUserIds = [];
+      for (const emp of validEmployees) {
+        const u = await User.findOne({ employeeId: emp.employeeId });
+        if (u) validUserIds.push(u._id);
+      }
+      await User.updateOne({ _id: managerUser._id }, { $set: { assignedEmployees: validUserIds } });
+    }
+  } catch (err) {
+    console.error('⚠️ [SYNC] reconcileManagerData error:', err.message);
+  }
+}

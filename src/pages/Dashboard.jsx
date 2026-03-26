@@ -48,7 +48,7 @@ const CalendarModal = ({ isOpen, onClose }) => {
           background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
           borderRadius: 8, color: '#f87171', width: 32, height: 32,
           cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>✕</LoaderButton>
+        }}></LoaderButton>
 
         <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: 0, marginBottom: 24 }}>Calendar</h2>
 
@@ -192,7 +192,7 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
   }, [nextBirthday, user]);
 
   const getCountdownString = (diffMs) => {
-    if (diffMs <= 0) return "Happening Today! 🎊";
+    if (diffMs <= 0) return "Happening Today! ";
     const totalSeconds = Math.floor(diffMs / 1000);
     const days = Math.floor(totalSeconds / (3600 * 24));
     const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600).toString().padStart(2, '0');
@@ -208,7 +208,7 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
           position: 'absolute', top: 20, right: 20,
           background: '#1a2a1a', padding: '10px',
           borderRadius: '12px', fontSize: '22px'
-        }}>🎂</div>
+        }}></div>
 
         <p className="card-title">TEAM CELEBRATIONS</p>
 
@@ -241,7 +241,7 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
                     fontFamily: 'monospace',
                     fontSize: 14
                   }}>
-                    ⏱ {getCountdownString(nextBirthday.diff)}
+                     {getCountdownString(nextBirthday.diff)}
                   </span>
                 </div>
               </div>
@@ -273,7 +273,7 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
                   if (nextBirthday.isToday) e.currentTarget.style.background = 'rgba(118,199,51,0.12)';
                 }}
               >
-                🎉 {nextBirthday.isToday ? "Send a Wish" : "Wish on Birthday"}
+                 {nextBirthday.isToday ? "Send a Wish" : "Wish on Birthday"}
               </LoaderButton>
             )}
           </>
@@ -316,7 +316,7 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
               zIndex: 1,
               willChange: 'transform'
             }}>
-              {['🎈', '✨', '🎁', '🎊'][Math.floor(Math.random() * 4)]}
+              {['', '', '', ''][Math.floor(Math.random() * 4)]}
             </div>
           ))}
 
@@ -348,9 +348,9 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.8)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.1)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#d0e0d0'; e.currentTarget.style.transform = 'scale(1)'; }}
               title="Close"
-            >✕</LoaderButton>
+            ></LoaderButton>
 
-            <div style={{ fontSize: 90, marginBottom: 20, animation: 'themeCakeBounce 2s infinite', willChange: 'transform' }}>🎂</div>
+            <div style={{ fontSize: 90, marginBottom: 20, animation: 'themeCakeBounce 2s infinite', willChange: 'transform' }}></div>
             <h2 style={{
               fontSize: 42, fontWeight: 900, color: '#fff', margin: 0, marginBottom: 20,
               background: 'linear-gradient(90deg, #76c733, #a9df7c, #76c733)',
@@ -358,13 +358,13 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
               animation: 'themeTextShine 3s linear infinite'
             }}>
-              🎉 Happy Birthday! 🎉
+               Happy Birthday! 
             </h2>
             <p style={{ fontSize: 32, color: '#f0fdf4', fontWeight: 800, marginBottom: 24, textShadow: '0 2px 10px rgba(118, 199, 51, 0.4)' }}>
               {user?.name}!
             </p>
             <p style={{ fontSize: 18, color: '#d0e0d0', lineHeight: 1.7, marginBottom: 40, fontWeight: 500 }}>
-              Wish you a great year ahead!<br /> May your day be filled with joy, success, and lots of amazing celebrations! 🥂✨
+              Wish you a great year ahead!<br /> May your day be filled with joy, success, and lots of amazing celebrations! 
             </p>
 
             <LoaderButton onClick={() => setShowPopup(false)} style={{
@@ -384,7 +384,7 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
                 e.currentTarget.style.boxShadow = '0 10px 25px rgba(118, 199, 51, 0.3)';
               }}
             >
-              Start Celebrating! 🎊
+              Start Celebrating! 
             </LoaderButton>
           </div>
           <style>{`
@@ -464,7 +464,7 @@ const Dashboard = () => {
       setSocket(newSocket);
 
       newSocket.on('receiveMessage', (message) => {
-        console.log('📩 [DASHBOARD] receiveMessage fired:', message);
+        console.log(' [DASHBOARD] receiveMessage fired:', message);
         const isFromMe = message.senderId === currentUserId;
 
         // If the message is from me, skip it — we already optimistically added it in Chat
@@ -474,7 +474,7 @@ const Dashboard = () => {
             if (message._id && prev.some(m => m._id === message._id)) return prev;
             return [...prev, message];
           });
-          console.log('🔴 [DASHBOARD] Incrementing unread count!');
+          console.log(' [DASHBOARD] Incrementing unread count!');
           setUnreadCount(prev => prev + 1);
         }
       });
@@ -502,34 +502,34 @@ const Dashboard = () => {
         initials: target.initials,
         role: target.role || 'admin'
       });
-      setWishMessage(`Happy Birthday, ${target.name} 🎉`);
+      setWishMessage(`Happy Birthday, ${target.name} `);
       setShowChat(true);
     }
   };
 
   const adminStats = [
-    { icon: '👥', label: 'Total Employees', value: totalEmployees, change: 'Total workforce', up: true, iconBg: 'rgba(118,199,51,0.15)' },
-    { icon: '✅', label: 'Active Today', value: Math.max(0, activeEmployees - approvedCount), change: `${attendancePct}% attendance`, up: attendancePct >= 80, iconBg: 'rgba(74,144,217,0.15)' },
-    { icon: '📅', label: 'On Leave', value: approvedCount, change: `${pendingCount} pending`, up: pendingCount === 0, iconBg: 'rgba(251,191,36,0.15)' },
-    { icon: '🏢', label: 'Departments', value: departmentsCount, change: 'All active', up: true, iconBg: 'rgba(155,89,182,0.15)' },
+    { icon: '', label: 'Total Employees', value: totalEmployees, change: 'Total workforce', up: true, iconBg: 'rgba(118,199,51,0.15)' },
+    { icon: '', label: 'Active Today', value: Math.max(0, activeEmployees - approvedCount), change: `${attendancePct}% attendance`, up: attendancePct >= 80, iconBg: 'rgba(74,144,217,0.15)' },
+    { icon: '', label: 'On Leave', value: approvedCount, change: `${pendingCount} pending`, up: pendingCount === 0, iconBg: 'rgba(251,191,36,0.15)' },
+    { icon: '', label: 'Departments', value: departmentsCount, change: 'All active', up: true, iconBg: 'rgba(155,89,182,0.15)' },
   ];
 
   const stats = isAdmin ? adminStats : [];
 
   const adminActions = [
-    { icon: '➕', label: 'Add New Employee', path: '/add-employee' },
-    { icon: '📈', label: 'View Analytics', path: '/analytics' },
-    { icon: '👥', label: 'Manage Employees', path: '/employees' },
-    { icon: '📅', label: 'Manage Leaves', path: '/manage-leaves' },
-    { icon: '⚙️', label: 'Settings', path: '/settings' },
+    { icon: '', label: 'Add New Employee', path: '/add-employee' },
+    { icon: '', label: 'View Analytics', path: '/analytics' },
+    { icon: '', label: 'Manage Employees', path: '/employees' },
+    { icon: '', label: 'Manage Leaves', path: '/manage-leaves' },
+    { icon: '', label: 'Settings', path: '/settings' },
   ].filter(a => {
     if (a.path === '/analytics' && user?.role !== 'superadmin') return false;
     return true;
   });
 
   const employeeActions = [
-    { icon: '📅', label: 'Apply for Leave', path: '/my-leaves' },
-    { icon: '⚙️', label: 'Profile Settings', path: '/settings' },
+    { icon: '', label: 'Apply for Leave', path: '/my-leaves' },
+    { icon: '', label: 'Profile Settings', path: '/settings' },
   ];
 
   const actions = isAdmin ? adminActions : employeeActions;
@@ -556,14 +556,14 @@ const Dashboard = () => {
             {/* Extended Profile Info */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 24 }}>
               <p style={{ color: '#76c733', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500 }}>
-                <span>✉️</span> {user?.email}
+                <span></span> {user?.email}
               </p>
               <p style={{ color: '#999999', fontSize: 13, maxWidth: 500, lineHeight: 1.5 }}>
                 {user?.bio || "No bio set. Head over to Settings to add a short bio and personalize your profile!"}
               </p>
             </div>
 
-            <LoaderButton className="view-calendar-btn" onClick={() => setShowCalendar(true)}>📅 View Calendar</LoaderButton>
+            <LoaderButton className="view-calendar-btn" onClick={() => setShowCalendar(true)}> View Calendar</LoaderButton>
           </div>
 
           {/* Stats Grid */}

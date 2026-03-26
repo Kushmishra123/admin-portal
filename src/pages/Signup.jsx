@@ -44,8 +44,8 @@ const Signup = () => {
       password: form.password,
     };
 
-    // ✅ LOG: What we are sending to the API
-    console.log('📤 [SIGNUP PAGE] Sending to API:', {
+    //  LOG: What we are sending to the API
+    console.log(' [SIGNUP PAGE] Sending to API:', {
       ...payload,
       password: '***hidden***',
     });
@@ -59,17 +59,17 @@ const Signup = () => {
 
       const data = await response.json();
 
-      // ✅ LOG: Full server response
-      console.log('📬 [SIGNUP PAGE] Server response:', data);
+      //  LOG: Full server response
+      console.log(' [SIGNUP PAGE] Server response:', data);
 
       if (!response.ok) {
         setError(data.message || 'Signup failed. Please try again.');
       } else {
-        setSuccess('✅ Account created successfully! Redirecting to login...');
+        setSuccess(' Account created successfully! Redirecting to login...');
         setTimeout(() => navigate('/'), 1800);
       }
     } catch (err) {
-      console.error('❌ [SIGNUP PAGE] Network error:', err);
+      console.error(' [SIGNUP PAGE] Network error:', err);
       setError('Network error. Make sure the backend server is running.');
     } finally {
       setLoading(false);
@@ -123,7 +123,7 @@ const Signup = () => {
       {/* ── RIGHT PANEL ── */}
       <div className="login-right">
         <div className="form-box">
-          <div className="form-box-tag">🚀 CREATE ACCOUNT</div>
+          <div className="form-box-tag"> CREATE ACCOUNT</div>
           <h2>Sign Up</h2>
           <p>Fill in the details below to get started</p>
 
@@ -193,7 +193,7 @@ const Signup = () => {
 
             {error && (
               <div className="error-msg">
-                <span>⚠️</span> {error}
+                <span></span> {error}
               </div>
             )}
 

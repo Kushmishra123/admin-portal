@@ -76,10 +76,7 @@ const ManageLeaves = () => {
             </div>
             <div style={{ display: 'flex', gap: 12 }}>
               <LoaderButton className="btn-secondary" onClick={refreshLeaves} style={{ opacity: loading ? 0.6 : 1 }}>
-                🔄 Refresh
-              </LoaderButton>
-              <LoaderButton className="btn-primary" onClick={() => navigate('/my-leaves')}>
-                ✍️ Apply My Leave
+                 Refresh
               </LoaderButton>
             </div>
           </div>
@@ -158,7 +155,7 @@ const ManageLeaves = () => {
                               opacity: processing === l._id ? 0.5 : 1
                             }}
                           >
-                            {processing === l._id ? '…' : '✓ Approve'}
+                            {processing === l._id ? '…' : ' Approve'}
                           </LoaderButton>
                           <LoaderButton
                             onClick={() => handleAction(l, 'Rejected')}
@@ -170,7 +167,7 @@ const ManageLeaves = () => {
                               opacity: processing === l._id ? 0.5 : 1
                             }}
                           >
-                            ✕ Reject
+                             Reject
                           </LoaderButton>
                         </div>
                       ) : l.status === 'Pending' ? (
@@ -203,7 +200,7 @@ const ManageLeaves = () => {
 
       {showToast && (
         <div className="toast" style={toastType === 'error' ? { background: 'rgba(239,68,68,0.15)', borderColor: 'rgba(239,68,68,0.3)' } : {}}>
-          <span className="toast-icon">{toastType === 'error' ? '❌' : '✅'}</span>
+          <span className="toast-icon">{toastType === 'error' ? '' : ''}</span>
           <span className="toast-msg" style={toastType === 'error' ? { color: '#f87171' } : {}}>{toastMsg}</span>
         </div>
       )}
