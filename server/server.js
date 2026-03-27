@@ -50,7 +50,8 @@ const io = new Server(server, {
 });
 
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Connect to MongoDB
 const uri = process.env.MONGO_URI
@@ -207,6 +208,7 @@ app.post('/api/auth/login', async (req, res) => {
         email: user.email,
         role,                              // normalized
         initials: user.initials,
+        profileImage: user.profileImage || '',
         policyStatus: user.policyStatus ?? false,
         managerId: user.managerId || null,
         assignedEmployees: user.assignedEmployees || [],
@@ -237,13 +239,13 @@ app.patch('/api/auth/policy-status/:employeeId', async (req, res) => {
   try {
     const user = await User.findOne({ employeeId: req.params.employeeId.toUpperCase() });
     if (!user) return res.status(404).json({ message: 'User not found' });
-    
+
     // Check if transitioning to true
     if (!user.policyStatus && policyStatus === true && req.body.policyStatus) {
       // Find all superadmins to notify
       const superadmins = await User.find({ role: 'superadmin' });
       const messageText = `This employee has read the policy. Name: ${user.name}, Email: ${user.email}`;
-      
+
       for (const sa of superadmins) {
         // Original chat message code
         const newMessage = new Message({
@@ -507,10 +509,12 @@ async function reconcileManagerData() {
         // that may have missing required fields (e.g. managerName) in MongoDB.
         await ManagerData.updateOne(
           { _id: mdoc._id },
-          { $set: {
-            employees: validEmployees,
-            managerName: managerUser.name || mdoc.managerName || 'Unknown Manager'
-          } }
+          {
+            $set: {
+              employees: validEmployees,
+              managerName: managerUser.name || mdoc.managerName || 'Unknown Manager'
+            }
+          }
         );
       }
 
@@ -618,13 +622,15 @@ app.post('/api/managers/:managerId/assign', async (req, res) => {
 app.get('/api/managers', async (req, res) => {
   try {
     const managers = await User.find({ role: 'manager' }, '-password').populate('assignedEmployees', 'employeeId name');
-    res.status(200).json({ managers: managers.map(m => ({
-      id: m.employeeId,
-      name: m.name,
-      email: m.email,
-      initials: m.initials,
-      assignedEmployees: (m.assignedEmployees || []).map(e => ({ id: e.employeeId, name: e.name })),
-    })) });
+    res.status(200).json({
+      managers: managers.map(m => ({
+        id: m.employeeId,
+        name: m.name,
+        email: m.email,
+        initials: m.initials,
+        assignedEmployees: (m.assignedEmployees || []).map(e => ({ id: e.employeeId, name: e.name })),
+      }))
+    });
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch managers', error: err.message });
   }
@@ -659,7 +665,7 @@ app.post('/api/employees/add-employee', async (req, res) => {
     designation, department, gender, dob, joinDate,
     assets, docUrl, shiftType, shift, offsPerWeek,
     duration, startTime, endTime, kra, kpa, phone, color,
-    role: assignedRole, managerId: assignedManagerId
+    role: assignedRole, managerId: assignedManagerId, profileImage
   } = req.body;
 
   // ── Validation ──
@@ -718,6 +724,7 @@ app.post('/api/employees/add-employee', async (req, res) => {
       role: finalRole,
       initials,
       managerId: managerObjectId,
+      profileImage: profileImage || '',
     });
 
     console.log('\n🗃️  [ADD-EMPLOYEE] Saving to USERS table:');
@@ -759,12 +766,16 @@ app.post('/api/employees/add-employee', async (req, res) => {
         try {
           await ManagerData.findOneAndUpdate(
             { managerId: managerUser.employeeId },
-            { $push: { employees: {
-                employeeId: newUser.employeeId,
-                employeeName: newUser.name,
-                email: newUser.email,
-                role: newUser.role
-            } } },
+            {
+              $push: {
+                employees: {
+                  employeeId: newUser.employeeId,
+                  employeeName: newUser.name,
+                  email: newUser.email,
+                  role: newUser.role
+                }
+              }
+            },
             { upsert: true }
           );
         } catch (syncErr) {
@@ -925,6 +936,7 @@ app.get('/api/employees', async (req, res) => {
         name: u.name || '',
         email: d.email || u.email || '',
         initials: u.initials || '',
+        profileImage: u.profileImage || '',
         role: normalizeRole(u.role),
         designation: d.designation,
         department: d.department,
@@ -1038,8 +1050,11 @@ app.put('/api/employees/:employeeId', async (req, res) => {
     // Update User model (name only for now, as it's common to change)
     if (updateData.name) {
       user.name = updateData.name;
-      await user.save();
     }
+    if (updateData.profileImage !== undefined) {
+      user.profileImage = updateData.profileImage;
+    }
+    await user.save();
 
     // Update EmployeeDetail model
     const detailUpdate = {

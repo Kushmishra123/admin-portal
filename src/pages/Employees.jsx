@@ -493,7 +493,8 @@ const EditEmployeeModal = ({ emp, onClose, onSave }) => {
     start: emp.startTime || '',
     end: emp.endTime || '',
     kra: emp.kra || '',
-    kpa: emp.kpa || ''
+    kpa: emp.kpa || '',
+    profileImage: emp.profileImage || ''
   });
 
   const handleChange = (f, val) => setForm({ ...form, [f]: val });
@@ -546,6 +547,21 @@ const EditEmployeeModal = ({ emp, onClose, onSave }) => {
               <input type="date" value={form.joinDate} onChange={e => handleChange('joinDate', e.target.value)} style={{ ...inputStyle, colorScheme: 'dark' }} /></div>
             <div><label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#6b7b6b', fontWeight: 500 }}>Date of Birth</label>
               <input type="date" value={form.dob} onChange={e => handleChange('dob', e.target.value)} style={{ ...inputStyle, colorScheme: 'dark' }} /></div>
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#6b7b6b', fontWeight: 500 }}>Profile Image</label>
+            <input type="file" accept="image/*" onChange={(e) => {
+              const file = e.target.files[0];
+              if (file) {
+                if (file.size > 2 * 1024 * 1024) { alert('Image size should be less than 2MB'); e.target.value = ''; return; }
+                const reader = new FileReader();
+                reader.onloadend = () => handleChange('profileImage', reader.result);
+                reader.readAsDataURL(file);
+              }
+            }} style={inputStyle} />
+            {form.profileImage && (
+              <div style={{ marginTop: 10 }}><img src={form.profileImage} alt="Profile" style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover' }} /></div>
+            )}
           </div>
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#6b7b6b', fontWeight: 500 }}>Company Assets</label>
@@ -781,6 +797,7 @@ const Employees = () => {
       department: form.department,
       joinDate: form.joinDate,
       dob: form.dob,
+      profileImage: form.profileImage,
       assets: form.assets,
       docUrl: form.docUrl,
       shift: form.shift,

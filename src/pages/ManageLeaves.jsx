@@ -17,6 +17,7 @@ const ManageLeaves = () => {
   const [toastType, setToastType] = useState('success');
   const [processing, setProcessing] = useState(null); // id being processed
   const [filter, setFilter] = useState('All'); // All | Pending | Approved | Rejected
+  const [searchTerm, setSearchTerm] = useState('');
 
   const toast = (msg, type = 'success') => {
     setToastMsg(msg);
@@ -44,7 +45,11 @@ const ManageLeaves = () => {
   const statusClass = (s) =>
     s === 'Approved' ? 'leave-approved' : s === 'Pending' ? 'leave-pending' : 'leave-rejected';
 
-  const filtered = filter === 'All' ? leaves : leaves.filter(l => l.status === filter);
+  const filtered = leaves.filter(l => {
+    const matchesStatus = filter === 'All' || l.status === filter;
+    const matchesSearch = (l.employeeName || '').toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
   const pendingCount = leaves.filter(l => l.status === 'Pending').length;
 
   return (
@@ -81,23 +86,48 @@ const ManageLeaves = () => {
             </div>
           </div>
 
-          {/* Filter tabs */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-            {['All', 'Pending', 'Approved', 'Rejected'].map(f => (
-              <LoaderButton
-                key={f}
-                onClick={() => setFilter(f)}
-                style={{
-                  padding: '6px 16px', borderRadius: 20, fontSize: 13, fontWeight: 500,
-                  cursor: 'pointer', transition: 'all 0.2s',
-                  background: filter === f ? '#76c733' : 'rgba(255,255,255,0.05)',
-                  color: filter === f ? '#000' : '#a0b0a0',
-                  border: filter === f ? 'none' : '1px solid #1a2a1a',
-                }}
-              >
-                {f} {f === 'All' ? `(${leaves.length})` : `(${leaves.filter(l => l.status === f).length})`}
-              </LoaderButton>
-            ))}
+          {/* Filter bars */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 16 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {['All', 'Pending', 'Approved', 'Rejected'].map(f => (
+                <LoaderButton
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  style={{
+                    padding: '6px 16px', borderRadius: 20, fontSize: 13, fontWeight: 500,
+                    cursor: 'pointer', transition: 'all 0.2s',
+                    background: filter === f ? '#76c733' : 'rgba(255,255,255,0.05)',
+                    color: filter === f ? '#000' : '#a0b0a0',
+                    border: filter === f ? 'none' : '1px solid #1a2a1a',
+                  }}
+                >
+                  {f} {f === 'All' ? `(${leaves.length})` : `(${leaves.filter(l => l.status === f).length})`}
+                </LoaderButton>
+              ))}
+            </div>
+
+            <div style={{ position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="Search by employee name..."
+                className="filter-input"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ width: '280px' }}
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  style={{
+                    position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', color: '#6b7b6b', cursor: 'pointer',
+                    fontSize: 18, padding: '0 4px'
+                  }}
+                >
+                  ×
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="table-card">

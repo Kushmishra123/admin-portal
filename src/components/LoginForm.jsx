@@ -60,6 +60,7 @@ const LoginForm = ({ onLogin }) => {
           role: data.user.role,
           initials: data.user.initials,
           employeeId: data.user.employeeId,
+          profileImage: data.user.profileImage,
           policyStatus: data.user.policyStatus ?? false,
         });
       }

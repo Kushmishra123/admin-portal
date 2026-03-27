@@ -152,7 +152,11 @@ const Navbar = ({ title, subtitle }) => {
               {user?.role === 'superadmin' ? 'Super Admin' : 'Admin'}
             </p>
           </div>
-          <div className="nav-avatar">{user?.initials}</div>
+          {user?.profileImage ? (
+            <img src={user.profileImage} alt="Profile" className="nav-avatar" style={{ objectFit: 'cover' }} />
+          ) : (
+            <div className="nav-avatar">{user?.initials}</div>
+          )}
         </div>
       </div>
     </div>

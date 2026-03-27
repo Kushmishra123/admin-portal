@@ -223,9 +223,13 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
                 overflow: 'hidden', border: '2px solid #76c733', flexShrink: 0,
                 background: nextBirthday.color || 'rgba(118,199,51,0.1)'
               }}>
-                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 700, color: '#fff' }}>
-                  {nextBirthday.initials}
-                </div>
+                {nextBirthday.profileImage ? (
+                  <img src={nextBirthday.profileImage} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 700, color: '#fff' }}>
+                    {nextBirthday.initials}
+                  </div>
+                )}
               </div>
               <div>
                 <p style={{ fontWeight: 600, fontSize: 15, color: '#fff' }}>
@@ -549,10 +553,28 @@ const Dashboard = () => {
               <span className="live-dot" />
               LIVE UPDATES
             </div>
-            <h1 className="welcome-title">
-              {greeting},<br />
-              <span>{user?.name}.</span>
-            </h1>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '16px' }}>
+              {user?.profileImage ? (
+                <img 
+                  src={user.profileImage} 
+                  alt="Profile" 
+                  style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '3px solid #76c733' }} 
+                />
+              ) : (
+                <div style={{
+                  width: 80, height: 80, borderRadius: '50%', border: '3px solid #76c733',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'rgba(118,199,51,0.1)', color: '#76c733', fontSize: 32, fontWeight: 700
+                }}>
+                  {user?.initials || 'U'}
+                </div>
+              )}
+              <h1 className="welcome-title" style={{ margin: 0 }}>
+                {greeting},<br />
+                <span>{user?.name}.</span>
+              </h1>
+            </div>
 
             {/* Extended Profile Info */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 24 }}>

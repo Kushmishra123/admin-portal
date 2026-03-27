@@ -92,6 +92,7 @@ const AddEmployee = () => {
     joinDate: '',
     assets: '',
     docUrl: '',
+    profileImage: '',
     department: 'ADMIN (1 offs/wk)',
     defaultShift: 'None',
     offsPerWeek: '2 Days',
@@ -156,6 +157,7 @@ const AddEmployee = () => {
       joinDate: form.joinDate,
       assets: form.assets,
       docUrl: form.docUrl,
+      profileImage: form.profileImage,
       shiftType: 'Rotational',
       shift: form.defaultShift,
       offsPerWeek: parseInt(form.offsPerWeek) || 0,
@@ -270,7 +272,7 @@ const AddEmployee = () => {
               {/* Personal Info */}
               <div className="form-card" style={{ marginBottom: 20 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
-                   Personal Information
+                  Personal Information
                 </h3>
                 <Field label="Employee Code" field="employeeCode" placeholder="e.g. QBL-E0026" form={form} errors={errors} handleChange={handleChange} />
                 <Field label="Full Name" field="fullName" form={form} errors={errors} handleChange={handleChange} />
@@ -278,6 +280,41 @@ const AddEmployee = () => {
                 <Select label="Gender" field="gender" options={GENDERS} form={form} errors={errors} handleChange={handleChange} />
                 <Field label="Date of Birth" field="dob" type="date" form={form} errors={errors} handleChange={handleChange} />
                 <Field label="Joining Date" field="joinDate" type="date" form={form} errors={errors} handleChange={handleChange} />
+                <div className="form-group" style={{ marginBottom: 16 }}>
+                  <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                     Profile Image
+                  </label>
+                  <input
+                    className="form-input"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        if (file.size > 2 * 1024 * 1024) { 
+                          alert('Image size should be less than 2MB');
+                          e.target.value = '';
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          handleChange('profileImage', reader.result);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    style={{ paddingTop: '8px' }}
+                  />
+                  {form.profileImage && (
+                    <div style={{ marginTop: 10 }}>
+                      <img 
+                        src={form.profileImage} 
+                        alt="Profile Preview" 
+                        style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover', border: '2px solid #76c733' }} 
+                      />
+                    </div>
+                  )}
+                </div>
                 <Textarea label="Company Assets" field="assets" placeholder="e.g., Laptop, ID Card, Access Card" form={form} errors={errors} handleChange={handleChange} />
                 <Field
                   label="Verification Document URL"
@@ -291,7 +328,7 @@ const AddEmployee = () => {
               {/* Work & Shift */}
               <div className="form-card" style={{ marginBottom: 20 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-                   Work &amp; Shift Details
+                  Work &amp; Shift Details
                 </h3>
                 <Select label="Department" field="department" options={DEPARTMENTS} form={form} errors={errors} handleChange={handleChange} />
                 <Select label="Default Shift" field="defaultShift" options={SHIFTS} form={form} errors={errors} handleChange={handleChange} />
@@ -313,7 +350,7 @@ const AddEmployee = () => {
               <div className="form-card" style={{ marginBottom: 24, border: '1px solid rgba(92, 184, 92, 0.2)', background: 'rgba(92,184,92,0.03)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                   <h3 style={{ fontSize: 16, fontWeight: 700, color: '#5cb85c', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
-                     Login Credentials
+                    Login Credentials
                   </h3>
                   {user?.role === 'superadmin' && (
                     <LoaderButton
@@ -375,7 +412,7 @@ const AddEmployee = () => {
               {/*  RBAC — Role & Manager Assignment */}
               <div className="form-card" style={{ marginBottom: 24, border: '1px solid rgba(99,102,241,0.25)', background: 'rgba(99,102,241,0.04)' }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: '#818cf8', display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 6px' }}>
-                   Role & Access Control
+                  Role & Access Control
                 </h3>
                 <p style={{ fontSize: 12, color: '#6b7b6b', marginBottom: 20 }}>
                   Assign a role to control what this user can access in the portal.
@@ -403,15 +440,15 @@ const AddEmployee = () => {
                 )}
                 {form.role === 'employee' && user?.role === 'manager' && (
                   <div style={{ marginTop: 8, marginBottom: 16, fontSize: 13, color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(16,185,129,0.3)' }}>
-                     This employee will be automatically assigned to your team.
+                    This employee will be automatically assigned to your team.
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
                   {[
                     { r: 'superadmin', label: ' Super Admin', color: '#f59e0b' },
-                    { r: 'manager',    label: ' Manager',     color: '#0ea5e9' },
-                    { r: 'hr',         label: '‍ HR',          color: '#a78bfa' },
-                    { r: 'employee',   label: ' Employee',    color: '#76c733' },
+                    { r: 'manager', label: ' Manager', color: '#0ea5e9' },
+                    { r: 'hr', label: '‍ HR', color: '#a78bfa' },
+                    { r: 'employee', label: ' Employee', color: '#76c733' },
                   ].map(({ r, label, color }) => (
                     <span key={r} style={{
                       fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
@@ -429,7 +466,7 @@ const AddEmployee = () => {
                   borderRadius: 12, padding: '12px 16px', marginBottom: 16,
                   fontSize: 13, color: '#f87171', display: 'flex', alignItems: 'center', gap: 8
                 }}>
-                   {serverError}
+                  {serverError}
                 </div>
               )}
 
@@ -452,7 +489,7 @@ const AddEmployee = () => {
               {/* Add Department */}
               <div className="form-card" style={{ background: '#080c08' }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 16, borderBottom: '1px solid #1a2a1a' }}>
-                   Add Department
+                  Add Department
                 </h3>
                 <Field label="Department Name" field="deptName" form={deptForm} errors={{}} handleChange={handleDeptChange} />
                 <Select label="Work Type" field="workType" options={WORK_TYPES} form={deptForm} errors={{}} handleChange={handleDeptChange} />
@@ -465,7 +502,7 @@ const AddEmployee = () => {
               {/* Add Shift */}
               <div className="form-card" style={{ background: '#080c08' }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 16, borderBottom: '1px solid #1a2a1a' }}>
-                   Add Shift
+                  Add Shift
                 </h3>
                 <Field label="Shift Name" field="shiftName" placeholder="e.g., Morning Shift" form={shiftForm} errors={{}} handleChange={handleShiftChange} />
                 <Field label="Shift Code" field="shiftCode" placeholder="e.g., M" form={shiftForm} errors={{}} handleChange={handleShiftChange} />
