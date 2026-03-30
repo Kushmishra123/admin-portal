@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
@@ -8,7 +8,7 @@ import { useUser } from '../context/UserContext';
 import { API_URL } from '../config';
 import '../styles/dashboard.css';
 import LoaderButton from '../components/LoaderButton';
-import { X } from 'lucide-react';
+import { X, Trash2, Building2, Clock } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Password strength helper
@@ -612,9 +612,15 @@ const EditEmployeeModal = ({ emp, onClose, onSave }) => {
         {/* Footer */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, padding: '16px 24px', borderTop: '1px solid #1a2a1a', background: '#0e1510' }}>
           <LoaderButton onClick={onClose} style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', padding: '8px 16px', borderRadius: 6, fontWeight: 500, cursor: 'pointer' }}>
-            Close
+            Cancel
           </LoaderButton>
-          <LoaderButton onClick={() => { onSave(form); onClose(); }} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 6, fontWeight: 500, cursor: 'pointer' }}>
+          <LoaderButton
+            onClick={async () => {
+              // onSave manages closing the modal — do NOT call onClose() here
+              await onSave(form);
+            }}
+            style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 6, fontWeight: 500, cursor: 'pointer' }}
+          >
             Save Changes
           </LoaderButton>
         </div>
@@ -769,6 +775,179 @@ const AssignTeamModal = ({ employees, onClose, onAssign, adminId }) => {
 
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Manage Departments Modal
+// ─────────────────────────────────────────────────────────────────────────────
+const WORK_TYPES_OPTS = ['Rotational (24/7)', 'Fixed'];
+const DURATION_OPTS   = ['6 Hours', '8 Hours', '9 Hours'];
+const OVERTIME_OPTS   = ['0 hrs (Base)', '1 hr', '2 hrs'];
+
+const ManageDepartmentsModal = ({ onClose, currentUser }) => {
+  const [depts, setDepts] = useState([]);
+  const [deptForm, setDeptForm] = useState({ name: '', workType: 'Fixed', offs: '1' });
+  const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(true);
+  const [error, setError] = useState('');
+  const iStyle = { width: '100%', padding: '9px 12px', border: '1px solid #1a2a1a', borderRadius: 6, outline: 'none', background: '#080c08', color: '#e0f0e0', boxSizing: 'border-box', fontSize: 13, fontFamily: 'inherit' };
+
+  const fetchDepts = async () => {
+    setFetchLoading(true);
+    try { const r = await fetch(`${API_URL}/departments`, { credentials: 'include' }); const d = await r.json(); setDepts(d.departments || []); }
+    catch { setDepts([]); } finally { setFetchLoading(false); }
+  };
+  useEffect(() => { fetchDepts(); }, []);
+
+  const handleAdd = async () => {
+    if (!deptForm.name.trim()) { setError('Department name is required'); return; }
+    setError(''); setLoading(true);
+    try {
+      const r = await fetch(`${API_URL}/departments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ name: deptForm.name.trim(), workType: deptForm.workType, offsPerWeek: parseInt(deptForm.offs) || 1, callerId: currentUser?.employeeId }) });
+      const d = await r.json();
+      if (!r.ok) { setError(d.message || 'Failed'); return; }
+      setDeptForm({ name: '', workType: 'Fixed', offs: '1' }); await fetchDepts();
+    } catch { setError('Network error'); } finally { setLoading(false); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this department?')) return;
+    try { await fetch(`${API_URL}/departments/${id}`, { method: 'DELETE', credentials: 'include' }); await fetchDepts(); }
+    catch { alert('Failed to delete'); }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, backdropFilter: 'blur(6px)', padding: 20 }}>
+      <div style={{ background: '#0e1510', border: '1px solid rgba(251,191,36,0.3)', borderRadius: 16, width: '100%', maxWidth: 540, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 80px rgba(0,0,0,0.7)', overflow: 'hidden' }}>
+        <div style={{ padding: '18px 24px', borderBottom: '1px solid rgba(251,191,36,0.12)', background: 'rgba(251,191,36,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(251,191,36,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Building2 size={18} color="#fbbf24" /></div>
+            <div><h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#fbbf24' }}>Manage Departments</h2><p style={{ margin: 0, fontSize: 12, color: '#6b7b6b' }}>Add and remove company departments</p></div>
+          </div>
+          <LoaderButton onClick={onClose} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32 }}><X size={18} /></LoaderButton>
+        </div>
+        <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+          <div style={{ background: 'rgba(251,191,36,0.04)', border: '1px solid rgba(251,191,36,0.15)', borderRadius: 10, padding: 16, marginBottom: 20 }}>
+            <p style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 600, color: '#fbbf24' }}>Add New Department</p>
+            <input style={{ ...iStyle, marginBottom: 8 }} placeholder="Department name (e.g. Finance)" value={deptForm.name} onChange={e => setDeptForm(f => ({ ...f, name: e.target.value }))} onKeyDown={e => e.key === 'Enter' && handleAdd()} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+              <select style={{ ...iStyle, cursor: 'pointer' }} value={deptForm.workType} onChange={e => setDeptForm(f => ({ ...f, workType: e.target.value }))}>
+                {WORK_TYPES_OPTS.map(w => <option key={w}>{w}</option>)}
+              </select>
+              <select style={{ ...iStyle, cursor: 'pointer' }} value={deptForm.offs} onChange={e => setDeptForm(f => ({ ...f, offs: e.target.value }))}>
+                <option value="0">0 offs/wk</option><option value="1">1 off/wk</option><option value="2">2 offs/wk</option>
+              </select>
+            </div>
+            {error && <p style={{ color: '#f87171', fontSize: 12, margin: '0 0 8px' }}>{error}</p>}
+            <LoaderButton loading={loading} onClick={handleAdd} style={{ width: '100%', padding: '9px', background: '#fbbf24', border: 'none', borderRadius: 6, color: '#000', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+              {loading ? 'Saving…' : '+ Add Department'}
+            </LoaderButton>
+          </div>
+          <p style={{ fontSize: 11, fontWeight: 600, color: '#6b7b6b', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 10 }}>Existing Departments ({depts.length})</p>
+          {fetchLoading ? (
+            <p style={{ color: '#4a5b4a', fontSize: 13, textAlign: 'center', padding: 20 }}>Loading…</p>
+          ) : depts.length === 0 ? (
+            <p style={{ color: '#4a5b4a', fontSize: 13, textAlign: 'center', padding: 20 }}>No departments yet. Add one above.</p>
+          ) : depts.map(d => (
+            <div key={d._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 8, marginBottom: 6, background: 'rgba(255,255,255,0.02)', border: '1px solid #1a2a1a' }}>
+              <div>
+                <span style={{ fontWeight: 600, color: '#e0f0e0', fontSize: 14 }}>{d.name}</span>
+                <span style={{ fontSize: 11, color: '#6b7b6b', marginLeft: 10 }}>{d.workType} · {d.offsPerWeek} off/wk</span>
+              </div>
+              <button onClick={() => handleDelete(d._id)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 6, color: '#f87171', cursor: 'pointer', padding: '5px 8px', display: 'flex', alignItems: 'center' }}><Trash2 size={13} /></button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Manage Shifts Modal
+// ─────────────────────────────────────────────────────────────────────────────
+const ManageShiftsModal = ({ onClose, currentUser }) => {
+  const [shifts, setShifts] = useState([]);
+  const [form, setForm] = useState({ shiftName: '', shiftCode: '', start: '', end: '', duration: '9 Hours', overtime: '0 hrs (Base)' });
+  const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(true);
+  const [error, setError] = useState('');
+  const iStyle = { width: '100%', padding: '9px 12px', border: '1px solid #1a2a1a', borderRadius: 6, outline: 'none', background: '#080c08', color: '#e0f0e0', boxSizing: 'border-box', fontSize: 13, fontFamily: 'inherit' };
+
+  const fetchShifts = async () => {
+    setFetchLoading(true);
+    try { const r = await fetch(`${API_URL}/shifts`, { credentials: 'include' }); const d = await r.json(); setShifts(d.shifts || []); }
+    catch { setShifts([]); } finally { setFetchLoading(false); }
+  };
+  useEffect(() => { fetchShifts(); }, []);
+
+  const handleAdd = async () => {
+    if (!form.shiftName.trim()) { setError('Shift name is required'); return; }
+    setError(''); setLoading(true);
+    try {
+      const r = await fetch(`${API_URL}/shifts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ name: form.shiftName.trim(), shiftCode: form.shiftCode, startTime: form.start, endTime: form.end, duration: form.duration, overtime: form.overtime, callerId: currentUser?.employeeId }) });
+      const d = await r.json();
+      if (!r.ok) { setError(d.message || 'Failed'); return; }
+      setForm({ shiftName: '', shiftCode: '', start: '', end: '', duration: '9 Hours', overtime: '0 hrs (Base)' }); await fetchShifts();
+    } catch { setError('Network error'); } finally { setLoading(false); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this shift?')) return;
+    try { await fetch(`${API_URL}/shifts/${id}`, { method: 'DELETE', credentials: 'include' }); await fetchShifts(); }
+    catch { alert('Failed to delete'); }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, backdropFilter: 'blur(6px)', padding: 20 }}>
+      <div style={{ background: '#0e1510', border: '1px solid rgba(56,189,248,0.3)', borderRadius: 16, width: '100%', maxWidth: 540, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 80px rgba(0,0,0,0.7)', overflow: 'hidden' }}>
+        <div style={{ padding: '18px 24px', borderBottom: '1px solid rgba(56,189,248,0.12)', background: 'rgba(56,189,248,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(56,189,248,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Clock size={18} color="#38bdf8" /></div>
+            <div><h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#38bdf8' }}>Manage Shifts</h2><p style={{ margin: 0, fontSize: 12, color: '#6b7b6b' }}>Add and remove company shift schedules</p></div>
+          </div>
+          <LoaderButton onClick={onClose} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32 }}><X size={18} /></LoaderButton>
+        </div>
+        <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+          <div style={{ background: 'rgba(56,189,248,0.04)', border: '1px solid rgba(56,189,248,0.15)', borderRadius: 10, padding: 16, marginBottom: 20 }}>
+            <p style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 600, color: '#38bdf8' }}>Add New Shift</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+              <input style={iStyle} placeholder="Shift name (e.g. Evening Shift)" value={form.shiftName} onChange={e => setForm(f => ({ ...f, shiftName: e.target.value }))} />
+              <input style={iStyle} placeholder="Code (e.g. E)" value={form.shiftCode} onChange={e => setForm(f => ({ ...f, shiftCode: e.target.value }))} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+              <div><label style={{ fontSize: 11, color: '#6b7b6b', display: 'block', marginBottom: 3 }}>Start Time</label><input style={iStyle} type="time" value={form.start} onChange={e => setForm(f => ({ ...f, start: e.target.value }))} /></div>
+              <div><label style={{ fontSize: 11, color: '#6b7b6b', display: 'block', marginBottom: 3 }}>End Time</label><input style={iStyle} type="time" value={form.end} onChange={e => setForm(f => ({ ...f, end: e.target.value }))} /></div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+              <select style={{ ...iStyle, cursor: 'pointer' }} value={form.duration} onChange={e => setForm(f => ({ ...f, duration: e.target.value }))}>{DURATION_OPTS.map(d => <option key={d}>{d}</option>)}</select>
+              <select style={{ ...iStyle, cursor: 'pointer' }} value={form.overtime} onChange={e => setForm(f => ({ ...f, overtime: e.target.value }))}>{OVERTIME_OPTS.map(o => <option key={o}>{o}</option>)}</select>
+            </div>
+            {error && <p style={{ color: '#f87171', fontSize: 12, margin: '0 0 8px' }}>{error}</p>}
+            <LoaderButton loading={loading} onClick={handleAdd} style={{ width: '100%', padding: '9px', background: 'rgba(56,189,248,0.15)', border: '1px solid rgba(56,189,248,0.4)', borderRadius: 6, color: '#38bdf8', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+              {loading ? 'Saving…' : '+ Add Shift'}
+            </LoaderButton>
+          </div>
+          <p style={{ fontSize: 11, fontWeight: 600, color: '#6b7b6b', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 10 }}>Existing Shifts ({shifts.length})</p>
+          {fetchLoading ? (
+            <p style={{ color: '#4a5b4a', fontSize: 13, textAlign: 'center', padding: 20 }}>Loading…</p>
+          ) : shifts.length === 0 ? (
+            <p style={{ color: '#4a5b4a', fontSize: 13, textAlign: 'center', padding: 20 }}>No shifts yet. Add one above.</p>
+          ) : shifts.map(s => (
+            <div key={s._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 8, marginBottom: 6, background: 'rgba(255,255,255,0.02)', border: '1px solid #1a2a1a' }}>
+              <div>
+                <span style={{ fontWeight: 600, color: '#e0f0e0', fontSize: 14 }}>{s.name}</span>
+                {s.shiftCode && <span style={{ fontSize: 11, color: '#38bdf8', marginLeft: 8, background: 'rgba(56,189,248,0.1)', padding: '1px 6px', borderRadius: 4 }}>{s.shiftCode}</span>}
+                {(s.startTime || s.endTime) && <span style={{ fontSize: 11, color: '#6b7b6b', marginLeft: 8 }}>{s.startTime} – {s.endTime}</span>}
+                {s.duration && <span style={{ fontSize: 11, color: '#6b7b6b', marginLeft: 6 }}>· {s.duration}</span>}
+              </div>
+              <button onClick={() => handleDelete(s._id)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 6, color: '#f87171', cursor: 'pointer', padding: '5px 8px', display: 'flex', alignItems: 'center' }}><Trash2 size={13} /></button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Employees Page
 // ─────────────────────────────────────────────────────────────────────────────
 const Employees = () => {
@@ -780,13 +959,21 @@ const Employees = () => {
   const [editingEmp, setEditingEmp] = useState(null);
   const [resetPwEmp, setResetPwEmp] = useState(null);
   const [showAssignTeam, setShowAssignTeam] = useState(false);
+  const [showManageDepts, setShowManageDepts] = useState(false);
+  const [showManageShifts, setShowManageShifts] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('Data has been saved in the database successfully.');
 
-  const handleSaveEdit = async (form) => {
+  // Seed default departments & shifts on first load (idempotent — skips existing)
+  useEffect(() => {
+    fetch(`${API_URL}/admin/seed-departments-shifts`, { method: 'POST', credentials: 'include' })
+      .catch(() => {}); // fire-and-forget
+  }, []);
+
+  const handleSaveEdit = async (form, keepOpen) => {
     if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) {
       alert("Please enter a valid structure for Gmail / Email address.");
-      return;
+      return false;
     }
 
     const success = await updateEmployee(form.code, {
@@ -813,7 +1000,13 @@ const Employees = () => {
       setToastMsg('Data has been saved in the database successfully.');
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
+      setEditingEmp(null); // close modal on success
+    } else {
+      // error is already in context; also show inline alert
+      alert('Failed to save changes. Please check the values and try again.');
+      // leave modal open so user can fix the issue
     }
+    return success;
   };
 
   const handleAssignSuccess = () => {
@@ -833,22 +1026,28 @@ const Employees = () => {
               <h1 className="page-title">Admin Control</h1>
               <p className="page-subtitle">Manage and track all organisation employees</p>
             </div>
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               {(user?.role === 'manager' || user?.role === 'hr') && (
                 <LoaderButton className="btn-primary" onClick={() => navigate('/add-employee')}>
-                   Add Employee
+                  Add Employee
                 </LoaderButton>
               )}
               {user?.role === 'hr' && (
                 <>
                   <LoaderButton style={{ background: '#76c733', color: '#000', border: 'none', borderRadius: 6, padding: '10px 16px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => navigate('/add-employee')}>
-                     Add Manager
+                    Add Manager
                   </LoaderButton>
                   <LoaderButton style={{ background: '#f59e0b', color: '#000', border: 'none', borderRadius: 6, padding: '10px 16px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => navigate('/add-employee')}>
-                     Add Super Admin
+                    Add Super Admin
                   </LoaderButton>
-                  <LoaderButton style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: 6, padding: '10px 16px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setShowAssignTeam(true)}>
-                     Assign Team (Employees)
+                  <LoaderButton style={{ background: 'rgba(56,189,248,0.12)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.3)', borderRadius: 6, padding: '10px 16px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setShowAssignTeam(true)}>
+                    Assign Employee
+                  </LoaderButton>
+                  <LoaderButton style={{ background: 'rgba(251,191,36,0.12)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.3)', borderRadius: 6, padding: '10px 16px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setShowManageDepts(true)}>
+                    Add Department
+                  </LoaderButton>
+                  <LoaderButton style={{ background: 'rgba(168,85,247,0.12)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.3)', borderRadius: 6, padding: '10px 16px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setShowManageShifts(true)}>
+                    Add Shift
                   </LoaderButton>
                 </>
               )}
@@ -899,6 +1098,22 @@ const Employees = () => {
             handleAssignSuccess();
             if (refreshEmployees) refreshEmployees();
           }}
+        />
+      )}
+
+      {/* Manage Departments Modal */}
+      {showManageDepts && (
+        <ManageDepartmentsModal
+          currentUser={user}
+          onClose={() => setShowManageDepts(false)}
+        />
+      )}
+
+      {/* Manage Shifts Modal */}
+      {showManageShifts && (
+        <ManageShiftsModal
+          currentUser={user}
+          onClose={() => setShowManageShifts(false)}
         />
       )}
 

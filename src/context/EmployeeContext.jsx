@@ -47,12 +47,17 @@ export const EmployeeProvider = ({ children }) => {
         credentials: 'include',
         body: JSON.stringify(updatedData),
       });
-      if (!res.ok) throw new Error(`Server responded ${res.status}`);
-      
+
+      // Always parse the body so we can surface real error messages
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || `Server responded ${res.status}`);
+      }
+
       if (updatedData.dob) {
         localStorage.removeItem(`birthdayPopupShown_${id}_${updatedData.dob}`);
       }
-      
+
       await fetchEmployees();
       return true;
     } catch (err) {

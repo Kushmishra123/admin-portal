@@ -476,6 +476,8 @@ app.get('/api/users', async (req, res) => {
 const EmployeeDetail = require('./models/EmployeeDetail');
 const EmployeeLeave = require('./models/EmployeeLeave');
 const ManagerData = require('./models/ManagerData');
+const Department = require('./models/Department');
+const Shift = require('./models/Shift');
 
 // ─── RECONCILE MANAGER DATA ───────────────────────────────────────────────────
 // Removes orphaned employee entries from managerdatas and stale manager entries.
@@ -1047,14 +1049,20 @@ app.put('/api/employees/:employeeId', async (req, res) => {
     const user = await User.findOne({ employeeId: employeeId.toUpperCase() });
     if (!user) return res.status(404).json({ message: 'Employee not found' });
 
-    // Update User model (name only for now, as it's common to change)
+    // Update User model fields
     if (updateData.name) {
       user.name = updateData.name;
+      // Keep initials in sync
+      user.initials = updateData.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    }
+    if (updateData.email) {
+      user.email = updateData.email;
     }
     if (updateData.profileImage !== undefined) {
       user.profileImage = updateData.profileImage;
     }
     await user.save();
+    console.log(`✅ [UPDATE-EMPLOYEE] User record updated: ${user.employeeId} (email: ${user.email})`);
 
     // Update EmployeeDetail model
     const detailUpdate = {
@@ -1081,16 +1089,24 @@ app.put('/api/employees/:employeeId', async (req, res) => {
 
     await EmployeeDetail.findOneAndUpdate({ userId: user._id }, detailUpdate);
 
-    // Update EmployeeLeave model
-    await EmployeeLeave.findOneAndUpdate(
-      { userId: user._id },
-      {
-        employeeName: updateData.name,
-        dob: updateData.dob
-      }
-    );
+    // Update EmployeeLeave model — only update fields that were actually provided
+    const leaveUpdate = {};
+    if (updateData.name !== undefined) leaveUpdate.employeeName = updateData.name;
+    if (updateData.dob  !== undefined) leaveUpdate.dob          = updateData.dob;
+    if (Object.keys(leaveUpdate).length > 0) {
+      await EmployeeLeave.findOneAndUpdate({ userId: user._id }, leaveUpdate);
+    }
 
-    res.status(200).json({ message: 'Employee updated successfully' });
+    res.status(200).json({
+      message: 'Employee updated successfully',
+      updatedUser: {
+        employeeId: user.employeeId,
+        name: user.name,
+        email: user.email,
+        initials: user.initials,
+        profileImage: user.profileImage,
+      }
+    });
   } catch (error) {
     console.error('❌ [UPDATE-EMPLOYEE] Error:', error.message);
     res.status(500).json({ message: 'Failed to update employee', error: error.message });
@@ -1422,6 +1438,179 @@ app.delete('/api/messages/:user1/:user2', async (req, res) => {
   } catch (error) {
     console.error('❌ [CHAT] Delete messages error:', error);
     res.status(500).json({ error: 'Failed to delete messages' });
+  }
+});
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DEPARTMENT ROUTES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── GET all departments ──────────────────────────────────────────────────────
+app.get('/api/departments', async (req, res) => {
+  try {
+    const departments = await Department.find({}).sort({ name: 1 });
+    res.status(200).json({ departments });
+  } catch (err) {
+    console.error('❌ [DEPT] Fetch error:', err.message);
+    res.status(500).json({ message: 'Failed to fetch departments', error: err.message });
+  }
+});
+
+// ─── POST add department (hr / superadmin only) ───────────────────────────────
+app.post('/api/departments', async (req, res) => {
+  const { name, workType, offsPerWeek, callerId } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ message: 'Department name is required' });
+
+  try {
+    // Auth check
+    if (callerId) {
+      const caller = await User.findOne({ employeeId: callerId.toUpperCase() });
+      if (!caller || !['hr', 'superadmin'].includes(normalizeRole(caller.role))) {
+        return res.status(403).json({ message: 'Forbidden: HR or Super Admin required' });
+      }
+    }
+
+    const existing = await Department.findOne({ name: name.trim() });
+    if (existing) return res.status(400).json({ message: `Department "${name.trim()}" already exists` });
+
+    const dept = await Department.create({
+      name: name.trim(),
+      workType: workType || 'Fixed',
+      offsPerWeek: parseInt(offsPerWeek) || 1,
+    });
+
+    console.log(`✅ [DEPT] Created: ${dept.name}`);
+    res.status(201).json({ message: 'Department added successfully', department: dept });
+  } catch (err) {
+    console.error('❌ [DEPT] Create error:', err.message);
+    res.status(500).json({ message: 'Failed to add department', error: err.message });
+  }
+});
+
+// ─── DELETE department ────────────────────────────────────────────────────────
+app.delete('/api/departments/:id', async (req, res) => {
+  try {
+    const dept = await Department.findByIdAndDelete(req.params.id);
+    if (!dept) return res.status(404).json({ message: 'Department not found' });
+    console.log(`🗑️  [DEPT] Deleted: ${dept.name}`);
+    res.status(200).json({ message: 'Department deleted successfully' });
+  } catch (err) {
+    console.error('❌ [DEPT] Delete error:', err.message);
+    res.status(500).json({ message: 'Failed to delete department', error: err.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SHIFT ROUTES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── GET all shifts ───────────────────────────────────────────────────────────
+app.get('/api/shifts', async (req, res) => {
+  try {
+    const shifts = await Shift.find({}).sort({ name: 1 });
+    res.status(200).json({ shifts });
+  } catch (err) {
+    console.error('❌ [SHIFT] Fetch error:', err.message);
+    res.status(500).json({ message: 'Failed to fetch shifts', error: err.message });
+  }
+});
+
+// ─── POST add shift (hr / superadmin only) ────────────────────────────────────
+app.post('/api/shifts', async (req, res) => {
+  const { name, shiftCode, startTime, endTime, duration, overtime, callerId } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ message: 'Shift name is required' });
+
+  try {
+    // Auth check
+    if (callerId) {
+      const caller = await User.findOne({ employeeId: callerId.toUpperCase() });
+      if (!caller || !['hr', 'superadmin'].includes(normalizeRole(caller.role))) {
+        return res.status(403).json({ message: 'Forbidden: HR or Super Admin required' });
+      }
+    }
+
+    const existing = await Shift.findOne({ name: name.trim() });
+    if (existing) return res.status(400).json({ message: `Shift "${name.trim()}" already exists` });
+
+    const shift = await Shift.create({
+      name: name.trim(),
+      shiftCode: shiftCode || '',
+      startTime: startTime || '',
+      endTime: endTime || '',
+      duration: duration || '9 Hours',
+      overtime: overtime || '0 hrs (Base)',
+    });
+
+    console.log(`✅ [SHIFT] Created: ${shift.name}`);
+    res.status(201).json({ message: 'Shift added successfully', shift });
+  } catch (err) {
+    console.error('❌ [SHIFT] Create error:', err.message);
+    res.status(500).json({ message: 'Failed to add shift', error: err.message });
+  }
+});
+
+// ─── DELETE shift ─────────────────────────────────────────────────────────────
+app.delete('/api/shifts/:id', async (req, res) => {
+  try {
+    const shift = await Shift.findByIdAndDelete(req.params.id);
+    if (!shift) return res.status(404).json({ message: 'Shift not found' });
+    console.log(`🗑️  [SHIFT] Deleted: ${shift.name}`);
+    res.status(200).json({ message: 'Shift deleted successfully' });
+  } catch (err) {
+    console.error('❌ [SHIFT] Delete error:', err.message);
+    res.status(500).json({ message: 'Failed to delete shift', error: err.message });
+  }
+});
+
+// ─── Seed initial departments & shifts ────────────────────────────────────────
+// POST /api/admin/seed-departments-shifts
+// Idempotent — skips entries that already exist
+app.post('/api/admin/seed-departments-shifts', async (req, res) => {
+  const defaultDepartments = [
+    { name: 'ADMIN (1 offs/wk)', workType: 'Fixed', offsPerWeek: 1 },
+    { name: 'Security',          workType: 'Rotational (24/7)', offsPerWeek: 1 },
+    { name: 'HR',                workType: 'Fixed', offsPerWeek: 2 },
+    { name: 'Design',            workType: 'Fixed', offsPerWeek: 2 },
+    { name: 'Quality',           workType: 'Fixed', offsPerWeek: 2 },
+    { name: 'Sales',             workType: 'Fixed', offsPerWeek: 2 },
+    { name: 'SOC',               workType: 'Rotational (24/7)', offsPerWeek: 1 },
+    { name: 'NOC',               workType: 'Rotational (24/7)', offsPerWeek: 1 },
+    { name: 'FMS',               workType: 'Rotational (24/7)', offsPerWeek: 1 },
+    { name: 'Operations',        workType: 'Fixed', offsPerWeek: 1 },
+    { name: 'Marketing',         workType: 'Fixed', offsPerWeek: 2 },
+    { name: 'Compliance',        workType: 'Fixed', offsPerWeek: 2 },
+    { name: 'CXO',               workType: 'Fixed', offsPerWeek: 2 },
+    { name: 'Directorship',      workType: 'Fixed', offsPerWeek: 2 },
+  ];
+
+  const defaultShifts = [
+    { name: 'None',          shiftCode: 'N',  startTime: '',      endTime: '',      duration: '0 Hours',  overtime: '0 hrs (Base)' },
+    { name: 'Morning Shift', shiftCode: 'M',  startTime: '06:00', endTime: '14:00', duration: '8 Hours',  overtime: '0 hrs (Base)' },
+    { name: 'Night Shift',   shiftCode: 'NS', startTime: '22:00', endTime: '06:00', duration: '8 Hours',  overtime: '0 hrs (Base)' },
+    { name: 'General',       shiftCode: 'G',  startTime: '09:00', endTime: '18:00', duration: '9 Hours',  overtime: '0 hrs (Base)' },
+  ];
+
+  try {
+    let deptAdded = 0, shiftAdded = 0;
+
+    for (const d of defaultDepartments) {
+      const exists = await Department.findOne({ name: d.name });
+      if (!exists) { await Department.create(d); deptAdded++; }
+    }
+    for (const s of defaultShifts) {
+      const exists = await Shift.findOne({ name: s.name });
+      if (!exists) { await Shift.create(s); shiftAdded++; }
+    }
+
+    console.log(`✅ [SEED] Departments added: ${deptAdded}, Shifts added: ${shiftAdded}`);
+    res.status(200).json({
+      message: `Seeded ${deptAdded} departments and ${shiftAdded} shifts`,
+      deptAdded, shiftAdded
+    });
+  } catch (err) {
+    console.error('❌ [SEED] Error:', err.message);
+    res.status(500).json({ message: 'Seed failed', error: err.message });
   }
 });
 
