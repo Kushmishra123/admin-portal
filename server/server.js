@@ -971,6 +971,39 @@ app.get('/api/employees', async (req, res) => {
   }
 });
 
+// ─── GET COMPANY-WIDE BIRTHDAYS ──────────────────────────────────────────────
+app.get('/api/birthdays', async (req, res) => {
+  try {
+    const details = await EmployeeDetail.find({ status: { $ne: 'Inactive' } }, 'userId employeeId dob color');
+    const userIds = details.map(d => d.userId);
+    const users = await User.find({ _id: { $in: userIds } }, 'name initials profileImage employeeId role _id');
+
+    const userMap = {};
+    users.forEach(u => { userMap[u._id.toString()] = u; });
+
+    const birthdays = details.map(d => {
+      const u = userMap[d.userId.toString()] || {};
+      return {
+        _id: u._id,
+        id: d.employeeId,
+        employeeId: d.employeeId,
+        name: u.name,
+        dob: d.dob,
+        initials: u.initials,
+        profileImage: u.profileImage,
+        color: d.color,
+        role: u.role ? String(u.role).toLowerCase() : 'employee',
+        status: 'Active'
+      };
+    }).filter(b => b.dob && b.name);
+
+    res.status(200).json({ birthdays });
+  } catch (err) {
+    console.error('❌ [GET-BIRTHDAYS] Error:', err.message);
+    res.status(500).json({ message: 'Failed to fetch birthdays', error: err.message });
+  }
+});
+
 // ─── DELETE EMPLOYEE ─────────────────────────────────────────────────────────
 app.delete('/api/employees/:employeeId', async (req, res) => {
   const { employeeId } = req.params;

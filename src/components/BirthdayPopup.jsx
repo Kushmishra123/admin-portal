@@ -19,14 +19,23 @@ const BirthdayPopup = () => {
   useEffect(() => {
     if (!user || !employees || employees.length === 0) return;
 
-    const currentId = user.id || user.employeeId;
+    const currentId = user?.employeeId || user?.id || user?._id;
     
     // Find if today is this user's birthday
     const today = new Date();
     const currentMonth = today.getMonth();
     const currentDate = today.getDate();
 
-    const myEmployeeRecord = employees.find(e => e.id === currentId || e._id === currentId || e.id === user.employeeId);
+    const myEmployeeRecord = employees.find(e => {
+       const uEmpId = user?.employeeId;
+       const uId = user?.id || user?._id;
+       const eEmpId = e?.employeeId;
+       const eId = e?.id || e?._id;
+       return (uEmpId && eEmpId && uEmpId === eEmpId) ||
+              (uId && eId && uId === eId) ||
+              (uEmpId && eId && uEmpId === eId) ||
+              (uId && eEmpId && uId === eEmpId);
+    });
     
     if (myEmployeeRecord && myEmployeeRecord.dob) {
       const dobStr = String(myEmployeeRecord.dob).substring(0, 10);

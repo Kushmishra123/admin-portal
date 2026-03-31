@@ -101,23 +101,23 @@ const EmployeeTable = ({ onEdit, onViewDetails, onResetPassword }) => {
                 </td>
                 <td style={{ color: '#e0f0e0', fontSize: 13 }}>{emp.department}</td>
                 <td>
-                  <span style={{
-                    background: emp.shiftType === 'Rotational' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                    color: emp.shiftType === 'Rotational' ? '#3b82f6' : '#10b981',
-                    border: `1px solid ${emp.shiftType === 'Rotational' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`,
-                    padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600
-                  }}>
-                    {emp.shiftType}
-                  </span>
-                </td>
-                <td>
-                  <span style={{
-                    background: 'rgba(6, 182, 212, 0.1)', color: '#06b6d4',
-                    border: '1px solid rgba(6, 182, 212, 0.3)',
-                    padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600
-                  }}>
-                    {emp.shift}
-                  </span>
+                  <div style={{ display: 'flex', gap: '6px', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <span style={{
+                      background: emp.shiftType === 'Rotational' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                      color: emp.shiftType === 'Rotational' ? '#3b82f6' : '#10b981',
+                      border: `1px solid ${emp.shiftType === 'Rotational' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`,
+                      padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600
+                    }}>
+                      {emp.shiftType}
+                    </span>
+                    <span style={{
+                      background: 'rgba(6, 182, 212, 0.1)', color: '#06b6d4',
+                      border: '1px solid rgba(6, 182, 212, 0.3)',
+                      padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600
+                    }}>
+                      {emp.shift}
+                    </span>
+                  </div>
                 </td>
                 <td style={{ fontWeight: 600, color: '#e0f0e0' }}>{emp.offs}</td>
                 <td>

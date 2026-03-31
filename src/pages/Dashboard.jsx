@@ -117,7 +117,8 @@ const CalendarModal = ({ isOpen, onClose }) => {
   );
 };
 
-const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
+const TeamCelebrationCard = ({ employees: contextEmployees, user, onSendWish }) => {
+  const [companyEmployees, setCompanyEmployees] = useState(contextEmployees);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showPopup, setShowPopup] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
@@ -129,13 +130,25 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
   }, []);
 
   React.useEffect(() => {
+    // Fetch all birthdays for the entire company so non-HR users also see them
+    fetch(`${API_BASE_URL}/api/birthdays`, { credentials: 'include' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && data.birthdays) {
+          setCompanyEmployees(data.birthdays);
+        }
+      })
+      .catch(err => console.error('Failed to fetch company birthdays:', err));
+  }, []);
+
+  React.useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
   const nextBirthday = React.useMemo(() => {
-    if (!employees || employees.length === 0) return null;
-    return employees
+    if (!companyEmployees || companyEmployees.length === 0) return null;
+    return companyEmployees
       .filter(e => e.dob && e.status !== 'Inactive')
       .map(e => {
         let bMonth = 0;
@@ -173,14 +186,24 @@ const TeamCelebrationCard = ({ employees, user, onSendWish }) => {
         return { ...e, targetDate, diff, isToday };
       })
       .sort((a, b) => a.diff - b.diff)[0];
-  }, [employees, currentTime]);
+  }, [companyEmployees, currentTime]);
 
   React.useEffect(() => {
     if (nextBirthday) {
-      const isMyBirthday = (user?.employeeId === nextBirthday.id || user?.id === nextBirthday.id) || (user?.employeeId === nextBirthday._id || user?.id === nextBirthday._id);
+      const uEmpId = user?.employeeId;
+      const uId = user?.id || user?._id;
+      const bEmpId = nextBirthday?.employeeId;
+      const bId = nextBirthday?.id || nextBirthday?._id;
+
+      const isMyBirthday = Boolean(
+        (uEmpId && bEmpId && uEmpId === bEmpId) ||
+        (uId && bId && uId === bId) ||
+        (uEmpId && bId && uEmpId === bId) ||
+        (uId && bEmpId && uId === bEmpId)
+      );
 
       if (isMyBirthday && nextBirthday.diff <= 0) {
-        const currentId = user?.id || user?.employeeId;
+        const currentId = uEmpId || uId;
         const popupKey = `birthdayPopupShown_${currentId}_${nextBirthday.dob}`;
         const hasShown = localStorage.getItem(popupKey);
 
@@ -444,7 +467,24 @@ const Dashboard = () => {
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
   const pendingCount = leaves.filter(l => l.status === 'Pending').length;
-  const approvedCount = leaves.filter(l => l.status === 'Approved').length;
+
+  const onLeaveTodayCount = React.useMemo(() => {
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
+    const onLeaveEmps = new Set();
+    leaves.forEach(l => {
+      if (l.status === 'Approved') {
+        const fromDate = new Date(l.from);
+        fromDate.setHours(0, 0, 0, 0);
+        const toDate = new Date(l.to);
+        toDate.setHours(0, 0, 0, 0);
+        if (todayDate >= fromDate && todayDate <= toDate) {
+          onLeaveEmps.add(l.employeeId);
+        }
+      }
+    });
+    return onLeaveEmps.size;
+  }, [leaves]);
 
   const totalEmployees = employees.length;
   const activeEmployees = employees.filter(e => e.status === 'Active').length;
@@ -455,7 +495,8 @@ const Dashboard = () => {
     return acc;
   }, {});
   const departmentsCount = Object.keys(deptCounts).length;
-  const attendancePct = totalEmployees > 0 ? Math.round(((activeEmployees - approvedCount) / totalEmployees) * 100) : 0;
+  const presentToday = Math.max(0, activeEmployees - onLeaveTodayCount);
+  const attendancePct = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
 
   // ── Global Socket Connection ──
   React.useEffect(() => {
@@ -514,8 +555,8 @@ const Dashboard = () => {
 
   const adminStats = [
     { icon: '', label: 'Total Employees', value: totalEmployees, change: 'Total workforce', up: true, iconBg: 'rgba(118,199,51,0.15)' },
-    { icon: '', label: 'Active Today', value: Math.max(0, activeEmployees - approvedCount), change: `${attendancePct}% attendance`, up: attendancePct >= 80, iconBg: 'rgba(74,144,217,0.15)' },
-    { icon: '', label: 'On Leave', value: approvedCount, change: `${pendingCount} pending`, up: pendingCount === 0, iconBg: 'rgba(251,191,36,0.15)' },
+    { icon: '', label: 'Active Today', value: presentToday, change: `${attendancePct}% attendance`, up: attendancePct >= 80, iconBg: 'rgba(74,144,217,0.15)' },
+    { icon: '', label: 'On Leave', value: onLeaveTodayCount, change: `${pendingCount} pending`, up: pendingCount === 0, iconBg: 'rgba(251,191,36,0.15)' },
     { icon: '', label: 'Departments', value: departmentsCount, change: 'All active', up: true, iconBg: 'rgba(155,89,182,0.15)' },
   ];
 

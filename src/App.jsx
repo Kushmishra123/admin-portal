@@ -20,7 +20,7 @@ import BirthdayPopup from './components/BirthdayPopup';
 
 function App() {
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('qb_user');
+    const savedUser = sessionStorage.getItem('qb_user');
     try {
       return savedUser ? JSON.parse(savedUser) : null;
     } catch (e) {
@@ -31,9 +31,9 @@ function App() {
 
   useEffect(() => {
     if (user) {
-      localStorage.setItem('qb_user', JSON.stringify(user));
+      sessionStorage.setItem('qb_user', JSON.stringify(user));
     } else {
-      localStorage.removeItem('qb_user');
+      sessionStorage.removeItem('qb_user');
     }
   }, [user]);
 
