@@ -500,7 +500,7 @@ const Dashboard = () => {
 
   // ── Global Socket Connection ──
   React.useEffect(() => {
-    if (user && (user.role === 'admin' || user.role === 'superadmin' || user.role === 'hr')) {
+    if (user) {
       const currentUserId = user.employeeId || user.id;
       const newSocket = io(API_BASE_URL, {
         query: { employeeId: currentUserId },
@@ -721,8 +721,8 @@ const Dashboard = () => {
       </div>
       <CalendarModal isOpen={showCalendar} onClose={() => setShowCalendar(false)} />
 
-      {/* Floating Chat Button for Admin, Superadmin, and HR */}
-      {(user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'hr') && (
+      {/* Floating Chat Button */}
+      {user && (
         <div style={{
           position: 'fixed', bottom: 32, right: 32,
           zIndex: 90,

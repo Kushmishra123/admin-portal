@@ -1,3 +1,9 @@
+
+require('dd-trace').init({
+  service: 'admin-dashbord',
+  logInjection: true,
+  debug: true
+});
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -1125,7 +1131,7 @@ app.put('/api/employees/:employeeId', async (req, res) => {
     // Update EmployeeLeave model — only update fields that were actually provided
     const leaveUpdate = {};
     if (updateData.name !== undefined) leaveUpdate.employeeName = updateData.name;
-    if (updateData.dob  !== undefined) leaveUpdate.dob          = updateData.dob;
+    if (updateData.dob !== undefined) leaveUpdate.dob = updateData.dob;
     if (Object.keys(leaveUpdate).length > 0) {
       await EmployeeLeave.findOneAndUpdate({ userId: user._id }, leaveUpdate);
     }
@@ -1602,26 +1608,26 @@ app.delete('/api/shifts/:id', async (req, res) => {
 app.post('/api/admin/seed-departments-shifts', async (req, res) => {
   const defaultDepartments = [
     { name: 'ADMIN (1 offs/wk)', workType: 'Fixed', offsPerWeek: 1 },
-    { name: 'Security',          workType: 'Rotational (24/7)', offsPerWeek: 1 },
-    { name: 'HR',                workType: 'Fixed', offsPerWeek: 2 },
-    { name: 'Design',            workType: 'Fixed', offsPerWeek: 2 },
-    { name: 'Quality',           workType: 'Fixed', offsPerWeek: 2 },
-    { name: 'Sales',             workType: 'Fixed', offsPerWeek: 2 },
-    { name: 'SOC',               workType: 'Rotational (24/7)', offsPerWeek: 1 },
-    { name: 'NOC',               workType: 'Rotational (24/7)', offsPerWeek: 1 },
-    { name: 'FMS',               workType: 'Rotational (24/7)', offsPerWeek: 1 },
-    { name: 'Operations',        workType: 'Fixed', offsPerWeek: 1 },
-    { name: 'Marketing',         workType: 'Fixed', offsPerWeek: 2 },
-    { name: 'Compliance',        workType: 'Fixed', offsPerWeek: 2 },
-    { name: 'CXO',               workType: 'Fixed', offsPerWeek: 2 },
-    { name: 'Directorship',      workType: 'Fixed', offsPerWeek: 2 },
+    { name: 'Security', workType: 'Rotational (24/7)', offsPerWeek: 1 },
+    { name: 'HR', workType: 'Fixed', offsPerWeek: 2 },
+    { name: 'Design', workType: 'Fixed', offsPerWeek: 2 },
+    { name: 'Quality', workType: 'Fixed', offsPerWeek: 2 },
+    { name: 'Sales', workType: 'Fixed', offsPerWeek: 2 },
+    { name: 'SOC', workType: 'Rotational (24/7)', offsPerWeek: 1 },
+    { name: 'NOC', workType: 'Rotational (24/7)', offsPerWeek: 1 },
+    { name: 'FMS', workType: 'Rotational (24/7)', offsPerWeek: 1 },
+    { name: 'Operations', workType: 'Fixed', offsPerWeek: 1 },
+    { name: 'Marketing', workType: 'Fixed', offsPerWeek: 2 },
+    { name: 'Compliance', workType: 'Fixed', offsPerWeek: 2 },
+    { name: 'CXO', workType: 'Fixed', offsPerWeek: 2 },
+    { name: 'Directorship', workType: 'Fixed', offsPerWeek: 2 },
   ];
 
   const defaultShifts = [
-    { name: 'None',          shiftCode: 'N',  startTime: '',      endTime: '',      duration: '0 Hours',  overtime: '0 hrs (Base)' },
-    { name: 'Morning Shift', shiftCode: 'M',  startTime: '06:00', endTime: '14:00', duration: '8 Hours',  overtime: '0 hrs (Base)' },
-    { name: 'Night Shift',   shiftCode: 'NS', startTime: '22:00', endTime: '06:00', duration: '8 Hours',  overtime: '0 hrs (Base)' },
-    { name: 'General',       shiftCode: 'G',  startTime: '09:00', endTime: '18:00', duration: '9 Hours',  overtime: '0 hrs (Base)' },
+    { name: 'None', shiftCode: 'N', startTime: '', endTime: '', duration: '0 Hours', overtime: '0 hrs (Base)' },
+    { name: 'Morning Shift', shiftCode: 'M', startTime: '06:00', endTime: '14:00', duration: '8 Hours', overtime: '0 hrs (Base)' },
+    { name: 'Night Shift', shiftCode: 'NS', startTime: '22:00', endTime: '06:00', duration: '8 Hours', overtime: '0 hrs (Base)' },
+    { name: 'General', shiftCode: 'G', startTime: '09:00', endTime: '18:00', duration: '9 Hours', overtime: '0 hrs (Base)' },
   ];
 
   try {

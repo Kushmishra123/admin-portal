@@ -20,6 +20,7 @@ const Sidebar = () => {
     { to: '/analytics',   icon: <TrendingUp size={18} />, label: 'Analytics' },
     { to: '/dashboard',   icon: <BarChart2 size={18} />, label: 'Dashboard' },
     { to: '/manage-leaves', icon: <Calendar size={18} />, label: 'Manage Leaves' },
+    { to: '/apply-leave', icon: <ClipboardList size={18} />, label: 'Apply on Behalf' },
     { to: '/my-leaves',   icon: <User size={18} />, label: 'My Leaves' },
     { to: '/settings',    icon: <Settings size={18} />, label: 'Settings' },
     { to: '/about',       icon: <Building2 size={18} />, label: 'About Company' },

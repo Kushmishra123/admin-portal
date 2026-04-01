@@ -140,8 +140,8 @@ const EmployeeTable = ({ onEdit, onViewDetails, onResetPassword }) => {
                       </svg>
                     </LoaderButton>
 
-                    {/* Reset Password — HR Only */}
-                    {user?.role === 'hr' && (
+                    {/* Reset Password — HR & SuperAdmin */}
+                    {(user?.role === 'hr' || user?.role === 'superadmin') && (
                         <LoaderButton
                           style={{
                             background: 'transparent',

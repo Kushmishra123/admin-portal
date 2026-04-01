@@ -20,7 +20,7 @@ const ApplyLeave = () => {
   const isHR         = user?.role === 'hr';
   const isSuperAdmin = user?.role === 'superadmin';
   const isManager    = user?.role === 'manager';
-  const canApplyBehalf = isHR; // only HR applies on behalf
+  const canApplyBehalf = isHR || isSuperAdmin; // HR and SuperAdmin apply on behalf
 
   const [mode, setMode] = useState(canApplyBehalf ? 'behalf' : 'self'); // 'self' | 'behalf'
 

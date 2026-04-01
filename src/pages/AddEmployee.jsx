@@ -111,7 +111,7 @@ const AddEmployee = () => {
   // ── Main employee form ───────────────────────────────────────────────────
   const [form, setForm] = useState({
     employeeCode: '', fullName: '', designation: '',
-    gender: 'Male', dob: '', joinDate: '',
+    phone: '', gender: 'Male', dob: '', joinDate: '',
     assets: '', docUrl: '', profileImage: '',
     department: '', defaultShift: '',
     offsPerWeek: '2 Days', duration: '6 Hours',
@@ -171,6 +171,7 @@ const AddEmployee = () => {
       employeeCode: form.employeeCode,
       fullName: form.fullName,
       email: form.targetCode || undefined,
+      phone: form.phone,
       password: form.password,
       designation: form.designation,
       department: form.department,
@@ -351,6 +352,7 @@ const AddEmployee = () => {
                 </h3>
                 <Field label="Employee Code" field="employeeCode" placeholder="e.g. QBL-E0026" form={form} errors={errors} handleChange={handleChange} />
                 <Field label="Full Name" field="fullName" form={form} errors={errors} handleChange={handleChange} />
+                <Field label="Phone Number" field="phone" type="tel" placeholder="e.g. +1 123 456 7890" form={form} errors={errors} handleChange={handleChange} />
                 <Field label="Designation" field="designation" placeholder="e.g., Manager, Executive" form={form} errors={errors} handleChange={handleChange} />
                 <Select label="Gender" field="gender" options={GENDERS} form={form} errors={errors} handleChange={handleChange} />
                 <Field label="Date of Birth" field="dob" type="date" form={form} errors={errors} handleChange={handleChange} />

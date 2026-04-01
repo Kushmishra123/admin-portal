@@ -147,7 +147,7 @@ const Chat = ({ isOpen, onClose, socket, messages, setMessages, onlineUsers, wis
 
   const currentUserId = user ? (user.employeeId || user.id) : null;
   const chatableUsers = chatUsers.filter(emp =>
-    emp.id !== currentUserId && (emp.role === 'admin' || emp.role === 'superadmin' || emp.role === 'hr')
+    emp.id !== currentUserId
   );
 
   return (
