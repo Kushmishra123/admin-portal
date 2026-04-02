@@ -484,6 +484,142 @@ const EmployeeLeave = require('./models/EmployeeLeave');
 const ManagerData = require('./models/ManagerData');
 const Department = require('./models/Department');
 const Shift = require('./models/Shift');
+const LeaveType = require('./models/LeaveType');
+
+// ─── LEAVE ENTITLEMENTS (Yearly) ──────────────────────────────────────────────
+app.get('/api/leave-types', async (req, res) => {
+  try {
+    const leaveTypes = await LeaveType.find().populate('employeeId', 'employeeId name role');
+    // We group by employeeId for easy front-end usage
+    const userLeavesMap = {};
+    
+    // Default types if none exist
+    const defaultTypes = [
+      { type: 'Week Off (WO)', defaultQuota: 48 },
+      { type: 'Sick Leave (SL)', defaultQuota: 0 },
+      { type: 'Casual Leave (CL)', defaultQuota: 0 },
+      { type: 'Paid Leave (PL)', defaultQuota: 0 },
+      { type: 'Emergency Leave (EL)', defaultQuota: 0 },
+      { type: 'Holiday (H)', defaultQuota: 0 },
+      { type: 'Compensatory Off (CO)', defaultQuota: 0 },
+      { type: 'Unpaid Leave (UL)', defaultQuota: 0 },
+    ];
+
+    // Check all users, if they don't have leave types, we return empty or just create on the fly
+    const allUsers = await User.find({ status: { $ne: 'Inactive' } }, '_id employeeId name role department shift offsPerWeek');
+
+    for (let user of allUsers) {
+      if(!userLeavesMap[user._id]) {
+        userLeavesMap[user._id] = {
+           user: { id: user._id, employeeId: user.employeeId, name: user.name },
+           types: []
+        };
+      }
+    }
+    
+    leaveTypes.forEach(lt => {
+       if (lt.employeeId && userLeavesMap[lt.employeeId._id]) {
+          userLeavesMap[lt.employeeId._id].types.push(lt);
+       }
+    });
+
+    const result = Object.values(userLeavesMap).map(u => {
+       // Merge DB types with default types so missing ones show up
+       const existingTypes = new Set(u.types.map(t => t.leaveType));
+       defaultTypes.forEach(dt => {
+          if (!existingTypes.has(dt.type)) {
+             u.types.push({
+                _id: null,
+                employeeId: u.user,
+                leaveType: dt.type,
+                yearlyQuota: dt.defaultQuota,
+                used: 0,
+                remaining: dt.defaultQuota,
+                isNew: true
+             });
+          }
+       });
+
+       // Maintain consistent order matching the defaultTypes
+       const typeOrder = {};
+       defaultTypes.forEach((dt, idx) => typeOrder[dt.type] = idx);
+       u.types.sort((a, b) => (typeOrder[a.leaveType] ?? 99) - (typeOrder[b.leaveType] ?? 99));
+
+       return u;
+    });
+
+    res.status(200).json({ data: result });
+  } catch (error) {
+    console.error('❌ [GET-LEAVE-TYPES] Error:', error.message);
+    res.status(500).json({ message: 'Failed to fetch leave types', error: error.message });
+  }
+});
+
+// GET /api/leave-types/employee/:empId
+app.get('/api/leave-types/employee/:empId', async (req, res) => {
+  try {
+     const userTarget = await User.findOne({ employeeId: req.params.empId.toUpperCase() });
+     if (!userTarget) return res.status(404).json({ message: 'User not found' });
+     
+     const leaveTypes = await LeaveType.find({ employeeId: userTarget._id });
+     // Include default merged
+     const defaultTypes = [
+       { type: 'Week Off (WO)', defaultQuota: 48 },
+       { type: 'Sick Leave (SL)', defaultQuota: 0 },
+       { type: 'Casual Leave (CL)', defaultQuota: 0 },
+       { type: 'Paid Leave (PL)', defaultQuota: 0 },
+       { type: 'Emergency Leave (EL)', defaultQuota: 0 },
+       { type: 'Holiday (H)', defaultQuota: 0 },
+       { type: 'Compensatory Off (CO)', defaultQuota: 0 },
+       { type: 'Unpaid Leave (UL)', defaultQuota: 0 },
+     ];
+
+     const existingTypes = new Set(leaveTypes.map(t => t.leaveType));
+     const finalTypes = [...leaveTypes.map(t => t.toObject())];
+
+     defaultTypes.forEach(dt => {
+        if (!existingTypes.has(dt.type)) {
+           finalTypes.push({
+              _id: null,
+              employeeId: req.params.userId,
+              leaveType: dt.type,
+              yearlyQuota: dt.defaultQuota,
+              used: 0,
+              remaining: dt.defaultQuota,
+              isNew: true
+           });
+        }
+     });
+
+     const typeOrder = {};
+     defaultTypes.forEach((dt, idx) => typeOrder[dt.type] = idx);
+     finalTypes.sort((a, b) => (typeOrder[a.leaveType] ?? 99) - (typeOrder[b.leaveType] ?? 99));
+
+     res.status(200).json({ data: finalTypes });
+  } catch (err) {
+     res.status(500).json({ message: 'Error', error: err.message });
+  }
+});
+
+app.put('/api/leave-types/bulk-update', async (req, res) => {
+  // expects [{ _id (if exists), employeeId, leaveType, yearlyQuota, used, remaining }]
+  try {
+     const { entitlements } = req.body;
+     for (let e of entitlements) {
+        if (!e.employeeId) continue;
+        const userId = typeof e.employeeId === 'object' ? e.employeeId.id : e.employeeId;
+        const remaining = e.yearlyQuota - e.used;
+        await LeaveType.findOneAndUpdate(
+           { employeeId: userId, leaveType: e.leaveType },
+           { yearlyQuota: e.yearlyQuota, used: e.used, remaining },
+           { upsert: true, new: true }
+        );
+     }
+     res.status(200).json({ message: 'Saved successfully' });
+  } catch (error) {
+     res.status(500).json({ message: 'Failed to update leave types', error: error.message });
+  }
+});
 
 // ─── RECONCILE MANAGER DATA ───────────────────────────────────────────────────
 // Removes orphaned employee entries from managerdatas and stale manager entries.
@@ -1204,15 +1340,16 @@ app.post('/api/leaves/apply', async (req, res) => {
   try {
     const empId = employeeId.toUpperCase();
     const doc = await getOrCreateLeaveDoc(empId);
-    const key = leaveKey(leaveType);
-
-    // Validate remaining balance
-    if (key) {
-      const remaining = doc.balance[key].total - doc.balance[key].used;
-      if (Number(days) > remaining) {
-        return res.status(400).json({
-          message: `Insufficient ${leaveType} balance. Remaining: ${remaining} day(s).`
-        });
+    // Validate remaining balance using LeaveType
+    const userTarget = await User.findOne({ employeeId: empId });
+    if (userTarget) {
+      const leaveEntitlement = await LeaveType.findOne({ employeeId: userTarget._id, leaveType });
+      if (leaveEntitlement) {
+        if (Number(days) > leaveEntitlement.remaining) {
+          return res.status(400).json({
+            message: `Insufficient ${leaveType} balance. Remaining: ${leaveEntitlement.remaining} day(s).`
+          });
+        }
       }
     }
 
@@ -1221,6 +1358,23 @@ app.post('/api/leaves/apply', async (req, res) => {
     await doc.save();
 
     const newRequest = doc.requests[doc.requests.length - 1];
+
+    // Notification to HR and Super Admin
+    try {
+      const admins = await User.find({ role: { $in: ['superadmin', 'hr'] } });
+      const notifications = admins.map(admin => ({
+        receiverId: admin.employeeId,
+        title: 'New Leave Application',
+        message: `${doc.employeeName} (${empId}) applied for ${days} day(s) of ${leaveType} (From: ${from} To: ${to}).`,
+        type: 'leave'
+      }));
+      if (notifications.length > 0) {
+        await Notification.insertMany(notifications);
+      }
+    } catch (notifErr) {
+      console.error('Failed to create admin notification for leave:', notifErr);
+    }
+
     res.status(201).json({ message: 'Leave request submitted', request: newRequest, employeeLeaveId: doc._id });
   } catch (err) {
     res.status(500).json({ message: 'Failed to submit leave', error: err.message });
@@ -1319,17 +1473,21 @@ app.patch('/api/leaves/:employeeLeaveId/request/:requestId/status', async (req, 
       return res.status(400).json({ message: 'Leave already processed' });
     }
 
-    // If Approved → deduct balance
+    // If Approved → deduct balance from LeaveType
     if (status === 'Approved') {
-      const key = leaveKey(request.leaveType);
-      if (key) {
-        const remaining = doc.balance[key].total - doc.balance[key].used;
-        if (request.days > remaining) {
-          return res.status(400).json({
-            message: `Cannot approve — employee has only ${remaining} ${request.leaveType} day(s) remaining.`
-          });
+      const userTarget = await User.findOne({ employeeId: doc.employeeId });
+      if (userTarget) {
+        const leaveEntitlement = await LeaveType.findOne({ employeeId: userTarget._id, leaveType: request.leaveType });
+        if (leaveEntitlement) {
+          if (request.days > leaveEntitlement.remaining) {
+            return res.status(400).json({
+              message: `Cannot approve — employee has only ${leaveEntitlement.remaining} ${request.leaveType} day(s) remaining.`
+            });
+          }
+          leaveEntitlement.used += request.days;
+          leaveEntitlement.remaining = Math.max(0, leaveEntitlement.yearlyQuota - leaveEntitlement.used);
+          await leaveEntitlement.save();
         }
-        doc.balance[key].used += request.days;
       }
     }
 
@@ -1337,6 +1495,25 @@ app.patch('/api/leaves/:employeeLeaveId/request/:requestId/status', async (req, 
     request.processedBy = processedBy || '';
     request.processedAt = new Date();
     await doc.save();
+
+    // Notification to Employee — saved to DB + pushed via socket in real-time
+    try {
+      const notif = new Notification({
+        receiverId: doc.employeeId,
+        title: `Leave Request ${status}`,
+        message: `Your leave request for ${request.days} day(s) of ${request.leaveType} has been ${status.toLowerCase()} by ${processedBy}.`,
+        type: 'leave'
+      });
+      await notif.save();
+
+      // Push real-time via socket if employee is online
+      const empSocketId = userSocketMap[doc.employeeId];
+      if (empSocketId) {
+        io.to(empSocketId).emit('newNotification', notif);
+      }
+    } catch (notifErr) {
+      console.error('Failed to create employee notification for leave status:', notifErr);
+    }
 
     res.status(200).json({ message: `Leave ${status}`, request, balance: doc.balance });
   } catch (err) {

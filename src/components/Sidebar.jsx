@@ -17,6 +17,7 @@ const Sidebar = () => {
   // ── Role-based nav link sets ─────────────────────────────────────────────────
   const superadminLinks = [
     { to: '/employees',    icon: <Users size={18} />, label: 'Employee Directory' },
+    { to: '/entitlements', icon: <Calendar size={18} />, label: 'Entitlements (Yearly)' },
     { to: '/analytics',   icon: <TrendingUp size={18} />, label: 'Analytics' },
     { to: '/dashboard',   icon: <BarChart2 size={18} />, label: 'Dashboard' },
     { to: '/manage-leaves', icon: <Calendar size={18} />, label: 'Manage Leaves' },
@@ -37,6 +38,7 @@ const Sidebar = () => {
 
   const hrLinks = [
     { to: '/employees',    icon: <Users size={18} />, label: 'Employee Directory' },
+    { to: '/entitlements', icon: <Calendar size={18} />, label: 'Entitlements (Yearly)' },
     { to: '/dashboard',   icon: <BarChart2 size={18} />, label: 'Dashboard' },
     { to: '/manage-leaves', icon: <Calendar size={18} />, label: 'All Leaves' },
     { to: '/apply-leave', icon: <ClipboardList size={18} />, label: 'Apply on Behalf' },

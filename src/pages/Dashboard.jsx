@@ -651,19 +651,15 @@ const Dashboard = () => {
             <div style={{ marginBottom: 32 }}>
               <h3 className="card-title" style={{ marginBottom: 16 }}>MY LEAVE BALANCE</h3>
               <div className="leave-balance-grid">
-                {[
-                  { type: 'Casual', val: useLeaves().balance.casual },
-                  { type: 'Sick', val: useLeaves().balance.sick },
-                  { type: 'Annual', val: useLeaves().balance.annual },
-                  { type: 'Emergency', val: useLeaves().balance.emergency },
-                ].map(({ type, val }) => {
-                  const total = val?.total ?? 0;
-                  const used = val?.used ?? 0;
-                  const rem = total - used;
+                {(useLeaves().entitlements || []).filter(e => e.leaveType !== 'Week Off (WO)' && e.leaveType !== 'Holiday (H)').slice(0, 4).map((entitlement) => {
+                  const type = entitlement.leaveType.split(' (')[0];
+                  const total = entitlement.yearlyQuota ?? 0;
+                  const used = entitlement.used ?? 0;
+                  const rem = entitlement.remaining ?? 0;
                   return (
-                    <div className="leave-balance-card" key={type} onClick={() => navigate('/my-leaves')} style={{ cursor: 'pointer' }}>
+                    <div className="leave-balance-card" key={entitlement.leaveType} onClick={() => navigate('/my-leaves')} style={{ cursor: 'pointer' }}>
                       <div className="leave-balance-num" style={{ color: rem === 0 ? '#ef4444' : '#76c733' }}>{rem}</div>
-                      <div className="leave-balance-type">{type} Leave</div>
+                      <div className="leave-balance-type">{type}</div>
                       <div style={{ fontSize: 11, color: '#6b7b6b', marginTop: 4 }}>{used} used of {total}</div>
                     </div>
                   );

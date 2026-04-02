@@ -6,7 +6,6 @@ const leaveRequestSchema = new mongoose.Schema(
     leaveType: {
       type: String,
       required: true,
-      enum: ['Casual Leave', 'Sick Leave', 'Annual Leave', 'Emergency Leave'],
     },
     from: { type: String, required: true },  // "YYYY-MM-DD"
     to: { type: String, required: true },  // "YYYY-MM-DD"

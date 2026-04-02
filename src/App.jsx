@@ -12,6 +12,7 @@ import Analytics from './pages/Analytics';
 import MyLeaves from './pages/MyLeaves';
 import Settings from './pages/Settings';
 import ManageLeaves from './pages/ManageLeaves';
+import Entitlements from './pages/Entitlements';
 import Signup from './pages/Signup';
 import AboutCompany from './pages/AboutCompany';
 import Policy from './pages/Policy';
@@ -90,6 +91,10 @@ function App() {
               <Route
                 path="/manage-leaves"
                 element={user && isElevated ? <ManageLeaves /> : <Navigate to="/" />}
+              />
+              <Route
+                path="/entitlements"
+                element={user && isElevated ? <Entitlements /> : <Navigate to="/" />}
               />
               <Route
                 path="/apply-leave"

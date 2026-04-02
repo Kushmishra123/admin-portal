@@ -5,10 +5,11 @@ import { useLeaves } from '../context/LeavesContext';
 import { useUser } from '../context/UserContext';
 import '../styles/dashboard.css';
 import LoaderButton from '../components/LoaderButton';
+import { X } from 'lucide-react';
 
 const MyLeaves = () => {
   const { user } = useUser();
-  const { leaves, balance, loading, applyLeave } = useLeaves();
+  const { leaves, entitlements, balance, loading, applyLeave } = useLeaves();
 
   const [showForm,  setShowForm]  = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -41,13 +42,14 @@ const MyLeaves = () => {
     }
   };
 
-  // Leave balance cards — shape: balance.casual = { total, used }
-  const balanceCards = [
-    { type: 'Casual Leave',    total: balance.casual?.total    ?? 8,  used: balance.casual?.used    ?? 0 },
-    { type: 'Sick Leave',      total: balance.sick?.total      ?? 10, used: balance.sick?.used      ?? 0 },
-    { type: 'Annual Leave',    total: balance.annual?.total    ?? 15, used: balance.annual?.used    ?? 0 },
-    { type: 'Emergency Leave', total: balance.emergency?.total ?? 3,  used: balance.emergency?.used ?? 0 },
-  ];
+  // Leave balance cards — build from entitlements, ignoring non-deductible ones like Week Off
+  const balanceCards = (entitlements || [])
+    .filter(e => e.leaveType !== 'Week Off (WO)' && e.leaveType !== 'Holiday (H)')
+    .map(e => ({
+      type: e.leaveType.split(' (')[0],
+      total: e.yearlyQuota ?? 0,
+      used: e.used ?? 0
+    }));
 
   const statusClass = (s) =>
     s === 'Approved' ? 'leave-approved' : s === 'Pending' ? 'leave-pending' : 'leave-rejected';
@@ -64,8 +66,8 @@ const MyLeaves = () => {
               <h1 className="page-title">My Leaves</h1>
               <p className="page-subtitle">View your leave history and apply for new leaves</p>
             </div>
-            <LoaderButton className="btn-primary" onClick={() => setShowForm(s => !s)}>
-              {showForm ? ' Cancel' : ' Apply for Leave'}
+            <LoaderButton className="btn-primary" onClick={() => setShowForm(true)}>
+               Apply for Leave
             </LoaderButton>
           </div>
 
@@ -117,41 +119,59 @@ const MyLeaves = () => {
             })}
           </div>
 
-          {/* ── Apply Form ── */}
+          {/* ── Apply Form Modal ── */}
           {showForm && (
-            <div className="form-card" style={{ marginBottom: 24 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 20 }}> Apply for Leave</h3>
-              <form >
-                <div className="form-grid">
-                  <div className="form-group">
-                    <label className="form-label">Leave Type</label>
-                    <select className="form-select" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} required>
-                      <option value="">Select Type</option>
-                      <option>Casual Leave</option>
-                      <option>Sick Leave</option>
-                      <option>Annual Leave</option>
-                      <option>Emergency Leave</option>
-                    </select>
+            <div style={{
+              position: 'fixed', inset: 0,
+              background: 'rgba(0,0,0,0.7)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              zIndex: 100, backdropFilter: 'blur(4px)'
+            }}>
+              <div style={{
+                 background: '#0e1510', border: '1px solid #1a2a1a',
+                 borderRadius: 24, padding: 36, width: 500, maxWidth: '90%', position: 'relative'
+              }}>
+                <button onClick={() => setShowForm(false)} style={{
+                  position: 'absolute', top: 16, right: 16,
+                  background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
+                  borderRadius: 8, color: '#f87171', width: 32, height: 32,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <X size={18} />
+                </button>
+  
+                <h3 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 24, marginTop: 0 }}>Apply for Leave</h3>
+                <form>
+                  <div className="form-grid">
+                    <div className="form-group" style={{ marginBottom: 16 }}>
+                      <label className="form-label">Leave Type</label>
+                      <select className="form-select" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} required>
+                        <option value="">Select Type</option>
+                        {(entitlements || []).filter(e => e.leaveType !== 'Week Off (WO)' && e.leaveType !== 'Holiday (H)').map((entitlement) => (
+                          <option key={entitlement.leaveType} value={entitlement.leaveType}>{entitlement.leaveType}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 16 }}>
+                      <label className="form-label">From Date</label>
+                      <input className="form-input" type="date" value={form.from} onChange={e => setForm(f => ({ ...f, from: e.target.value }))} required />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 16 }}>
+                      <label className="form-label">To Date</label>
+                      <input className="form-input" type="date" value={form.to} onChange={e => setForm(f => ({ ...f, to: e.target.value }))} required />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 24 }}>
+                      <label className="form-label">Reason</label>
+                      <input className="form-input" type="text" placeholder="Brief reason for leave" value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} required />
+                    </div>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">From Date</label>
-                    <input className="form-input" type="date" value={form.from} onChange={e => setForm(f => ({ ...f, from: e.target.value }))} required />
+                  <div className="form-actions" style={{ marginTop: 0 }}>
+                    <LoaderButton onClick={handleApply} type="submit" className="btn-primary" disabled={submitting} style={{ width: '100%', justifyContent: 'center' }}>
+                      {submitting ? '⏳ Submitting…' : 'Submit Request'}
+                    </LoaderButton>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">To Date</label>
-                    <input className="form-input" type="date" value={form.to} onChange={e => setForm(f => ({ ...f, to: e.target.value }))} required />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Reason</label>
-                    <input className="form-input" type="text" placeholder="Brief reason for leave" value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} required />
-                  </div>
-                </div>
-                <div className="form-actions" style={{ marginTop: 0 }}>
-                  <LoaderButton onClick={handleApply} type="submit" className="btn-primary" disabled={submitting}>
-                    {submitting ? '⏳ Submitting…' : 'Submit Request'}
-                  </LoaderButton>
-                </div>
-              </form>
+                </form>
+              </div>
             </div>
           )}
 

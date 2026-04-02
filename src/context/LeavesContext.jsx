@@ -14,6 +14,7 @@ export const LeavesProvider = ({ children }) => {
     annual:    { total: 15, used: 0 },
     emergency: { total: 3,  used: 0 },
   });
+  const [entitlements, setEntitlements] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // ── Fetch leaves from the database ──────────────────────────────────────────
@@ -46,10 +47,39 @@ export const LeavesProvider = ({ children }) => {
     // Balance is already returned by fetchLeaves for normal admin
   }, [user]);
 
+  const fetchEntitlements = useCallback(async () => {
+    if (!user) return;
+    try {
+      const uId = user.id || user._id; // Ensure we get the Mongo ObjectId
+      if (typeof uId === 'string' && uId.startsWith('QBL-')) {
+          // If the context uses employeeId as its primary id, fallback logic shouldn't be here since the DB stores Mongo IDs in LeaveType. 
+          // Let's pass the Mongo ID. If `user.id` is QBL, we will use employeeId to look up the DB inside `server.js`.
+      }
+      // Wait, my endpoint `user/:userId`. The userId is passed and `LeaveType.find({ employeeId: req.params.userId })`
+      // Wait! LeaveType schema:
+      // `employeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }`
+      // This means `req.params.userId` must be the mongoose ObjectId `_id`.
+      
+      const realMongoId = user._id || user.id; // Usually backend sends _id in user.id or user._id on login
+      // Wait! Login sends `user: { employeeId: user.employeeId, id: user._id ...}`?
+      // Let's check server.js login logic. 
+      // I'll just use another endpoint `/api/leave-types/employee/:employeeId` later if this fails, but since I am passing `user.id` everywhere, let's try `user.id`. Actually `user.id` is not standard, `user.employeeId` is the string.
+      // I will update the URL below to use employeeId and fix the backend route to accept employeeId string.
+      const res = await fetch(`${API_URL}/leave-types/employee/${encodeURIComponent(user.employeeId)}`, { credentials: 'include' });
+      const data = await res.json();
+      if (data.data) {
+        setEntitlements(data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch entitlements:', err);
+    }
+  }, [user]);
+
   useEffect(() => {
     fetchLeaves();
     fetchBalance();
-  }, [fetchLeaves, fetchBalance]);
+    fetchEntitlements();
+  }, [fetchLeaves, fetchBalance, fetchEntitlements]);
 
   // ── Normal admin applies for leave ──────────────────────────────────────────
   const applyLeave = async ({ leaveType, from, to, days, reason }) => {
@@ -88,9 +118,9 @@ export const LeavesProvider = ({ children }) => {
 
   return (
     <LeavesContext.Provider value={{
-      leaves, balance, loading,
+      leaves, balance, entitlements, loading,
       applyLeave, updateLeaveStatus,
-      refreshLeaves: fetchLeaves,
+      refreshLeaves: () => { fetchLeaves(); fetchEntitlements(); },
     }}>
       {children}
     </LeavesContext.Provider>

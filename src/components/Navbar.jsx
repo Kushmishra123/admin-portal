@@ -14,34 +14,29 @@ const Navbar = ({ title, subtitle }) => {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    if (user?.role === 'superadmin') {
-      const currentUserId = user.employeeId || user.id;
+    if (!user) return;
+    const currentUserId = user.employeeId || user.id;
 
-      // Initial fetch
-      fetch(`${API_URL}/notifications/${currentUserId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) setNotifications(data);
-        })
-        .catch(err => console.error('Failed to fetch notifications:', err));
+    // Initial fetch for ALL roles
+    fetch(`${API_URL}/notifications/${currentUserId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setNotifications(data);
+      })
+      .catch(err => console.error('Failed to fetch notifications:', err));
 
-      // Socket setup
-      const newSocket = io(API_BASE_URL, {
-        query: { employeeId: currentUserId },
-        withCredentials: true
-      });
-      setSocket(newSocket);
+    // Socket setup for ALL roles
+    const newSocket = io(API_BASE_URL, {
+      query: { employeeId: currentUserId },
+      withCredentials: true
+    });
+    setSocket(newSocket);
 
-      newSocket.on('newNotification', (notification) => {
-        setNotifications(prev => [notification, ...prev]);
-        // Optional browser native notification
-        if (Notification.permission === 'granted') {
-          new Notification(notification.title, { body: notification.message });
-        }
-      });
+    newSocket.on('newNotification', (notification) => {
+      setNotifications(prev => [notification, ...prev]);
+    });
 
-      return () => newSocket.close();
-    }
+    return () => newSocket.close();
   }, [user]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -52,6 +47,22 @@ const Navbar = ({ title, subtitle }) => {
       setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleNotificationClick = async (n) => {
+    // Mark as read
+    if (!n.read) await handleRead(n._id);
+    // Close dropdown
+    setShowNotifications(false);
+    // Navigate based on role + notification type
+    if (n.type === 'leave') {
+      const role = user?.role;
+      if (role === 'superadmin' || role === 'hr' || role === 'manager') {
+        navigate('/manage-leaves');
+      } else {
+        navigate('/my-leaves');
+      }
     }
   };
 
@@ -88,7 +99,7 @@ const Navbar = ({ title, subtitle }) => {
           <span className="time-badge"> {timeStr}</span>
         </div>
 
-        {user?.role === 'superadmin' && (
+        {user && (
           <div style={{ position: 'relative' }}>
             <LoaderButton 
               className="nav-signout-btn" 
@@ -126,9 +137,9 @@ const Navbar = ({ title, subtitle }) => {
                   {notifications.length === 0 ? (
                     <div style={{ padding: 20, textAlign: 'center', color: '#666', fontSize: 13 }}>No notifications</div>
                   ) : notifications.map(n => (
-                    <div key={n._id} onClick={() => !n.read && handleRead(n._id)} style={{
+                    <div key={n._id} onClick={() => handleNotificationClick(n)} style={{
                       padding: 14, borderBottom: '1px solid #1a1a1a', background: n.read ? 'transparent' : 'rgba(118,199,51,0.05)',
-                      cursor: n.read ? 'default' : 'pointer', transition: 'background 0.2s'
+                      cursor: 'pointer', transition: 'background 0.2s'
                     }}>
                       <div style={{ fontSize: 13, fontWeight: n.read ? 500 : 700, color: n.read ? '#ccc' : '#fff', marginBottom: 4 }}>{n.title}</div>
                       <div style={{ fontSize: 12, color: '#999', lineHeight: 1.4 }}>{n.message}</div>
@@ -149,7 +160,7 @@ const Navbar = ({ title, subtitle }) => {
           <div className="nav-text">
             <p className="nav-user-name">{user?.name}</p>
             <p className="nav-user-role">
-              {user?.role === 'superadmin' ? 'Super Admin' : 'Admin'}
+            {user?.role === 'superadmin' ? 'Super Admin' : user?.role === 'hr' ? 'HR' : user?.role === 'manager' ? 'Manager' : 'Employee'}
             </p>
           </div>
           {user?.profileImage ? (
