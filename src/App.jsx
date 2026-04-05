@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
 import AddEmployee from './pages/AddEmployee';
 import Analytics from './pages/Analytics';
+import Attendance from './pages/Attendance';
 import MyLeaves from './pages/MyLeaves';
 import Settings from './pages/Settings';
 import ManageLeaves from './pages/ManageLeaves';
@@ -109,6 +110,10 @@ function App() {
               <Route
                 path="/analytics"
                 element={user && isSuperAdmin ? <Analytics />   : <Navigate to="/" />}
+              />
+              <Route
+                path="/attendance"
+                element={user && (isSuperAdmin || isHR) ? <Attendance /> : <Navigate to="/" />}
               />
 
               {/* Employee-facing Routes (everyone needs access to apply for their own leave) */}

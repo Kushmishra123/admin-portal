@@ -4,7 +4,7 @@ require('dd-trace').init({
   logInjection: true,
   debug: true
 });
-require('dotenv').config();
+require('dotenv').config({ path: __dirname + '/.env' });
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');

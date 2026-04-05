@@ -6,10 +6,13 @@
 .admin-layout {
   display: flex !important;
   flex-direction: row !important;
+  position: fixed !important;
+  top: 0; left: 0; right: 0; bottom: 0;
   width: 100vw !important;
   height: 100vh !important;
-  background-color: #050505 !important;
-  overflow-x: hidden;
+  background-color: var(--bg-deep, #050505) !important;
+  overflow: hidden !important;
+  color: var(--text-light, #ffffff);
 }
 
 /* --- Sidebar --- */
@@ -17,8 +20,9 @@
   position: relative !important;
   width: 270px !important;
   height: 100vh !important;
-  background: #0a0a0a !important;
-  border-right: 1px solid #222222 !important;
+  max-height: 100vh !important;
+  background: var(--bg-dark, #0a0a0a) !important;
+  border-right: 1px solid var(--border-color, #1a1a1a) !important;
   display: flex !important;
   flex-direction: column !important;
   padding: 28px 18px !important;
@@ -182,6 +186,11 @@
   background: rgba(255,255,255,0.03);
   border-radius: 12px;
   border: 1px solid #222222;
+  transition: all 0.2s ease;
+}
+.sidebar-user:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: #333333;
 }
 .sidebar-avatar {
   width: 36px;
@@ -236,8 +245,11 @@
   display: flex !important;
   flex-direction: column !important;
   height: 100vh !important;
+  max-height: 100vh !important;
   overflow-y: auto !important;
-  background-color: #050505 !important;
+  overflow-x: hidden !important;
+  background-color: var(--bg-deep, #050505) !important;
+  position: relative;
 }
 .navbar {
   height: 72px !important;
